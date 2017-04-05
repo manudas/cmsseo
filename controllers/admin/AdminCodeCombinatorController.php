@@ -128,7 +128,7 @@ class AdminCodeCombinationController extends ModuleAdminController
 		$this->fields_form = array(
 			'tinymce' => true,
 			'legend' => array(
-				'title' => $this->l('Example'),
+				'title' => $this->l('Accepted combinations'),
 				'image' => '../img/admin/cog.gif'
 			),
 			'input' => array(
