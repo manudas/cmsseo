@@ -18,7 +18,7 @@
 if (!defined( '_PS_VERSION_' ))
 	exit;
 
-
+require_once (_PS_MODULE_DIR_.Tools::getValue('module').'/models/codeextract.php') ;
 
 class cmsseo extends Module
 {
@@ -47,7 +47,7 @@ class cmsseo extends Module
             /*
             && Configuration::updateValue('cmsseo_NBBLOCKS', 5)
             */
-            && $this->installFixtures()
+            && $this->installTabs()
             /*
             && $this->registerHook('displayOrderConfirmation2')
             && $this->registerHook('actionUpdateLangAfter')
@@ -57,53 +57,31 @@ class cmsseo extends Module
 
     public function installDB()
     {
-        die ("use models install methods instead returning boolean");
-        /*
-        $return = true;
-        $return &= Db::getInstance()->execute('
-            CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'reassurance` (
-                `id_reassurance` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-                `id_shop` int(10) unsigned NOT NULL ,
-                `file_name` VARCHAR(100) NOT NULL,
-                PRIMARY KEY (`id_reassurance`)
-            ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8 ;');
-
-        $return &= Db::getInstance()->execute('
-            CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'reassurance_lang` (
-                `id_reassurance` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-                `id_lang` int(10) unsigned NOT NULL ,
-                `text` VARCHAR(300) NOT NULL,
-                PRIMARY KEY (`id_reassurance`, `id_lang`)
-            ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8 ;');
-            */
+        $return = CodeExtract::createTables();
+       
         return $return;
+    }
+
+    private function uninstallTabs() {
+        $tab_list = Tab::getCollectionFromModule($this -> name);
+        if (!empty($tab_list)) {
+            foreach ($tab_list as $tab) {
+                $tab -> delete();
+            }
+        }
     }
 
     public function uninstall()
     {
-        die ("use models uninstall methods instead returning boolean");
-        /*
-        return Configuration::deleteByName('cmsseo_NBBLOCKS') &&
-            $this->uninstallDB() &&
-            parent::uninstall();
-            */
+        return $this -> uninstallTabs() && $this -> uninstallDB() && parent::uninstall();
     }
 
     public function uninstallDB()
     {
-        die ("use models uninstall methods instead returning boolean");
-
-        // return Db::getInstance()->execute('DROP TABLE IF EXISTS `'._DB_PREFIX_.'reassurance`') && Db::getInstance()->execute('DROP TABLE IF EXISTS `'._DB_PREFIX_.'reassurance_lang`');
+        $return = CodeExtract::dropTables();
+        return $return;
     }
 
-    public function hookActionUpdateLangAfter($params)
-    {
-        if (!empty($params['lang']) && $params['lang'] instanceOf Language) {
-            include_once _PS_MODULE_DIR_ . $this->name . '/lang/ReassuranceLang.php';
-
-            Language::updateMultilangFromClass(_DB_PREFIX_ . 'reassurance_lang', 'ReassuranceLang', $params['lang']);
-        }
-    }
 
     public function getContent()
     {
@@ -311,7 +289,7 @@ class cmsseo extends Module
     {
         parent::_clearCache($this->templateFile);
     }
-
+/*
     public function renderWidget($hookName = null, array $configuration = [])
     {
         if (!$this->isCached($this->templateFile, $this->getCacheId('cmsseo'))) {
@@ -320,7 +298,8 @@ class cmsseo extends Module
 
         return $this->fetch($this->templateFile, $this->getCacheId('cmsseo'));
     }
-
+*/    
+/*
     public function getWidgetVariables($hookName = null, array $configuration = [])
     {
         $elements = $this->getListContent($this->context->language->id);
@@ -333,30 +312,29 @@ class cmsseo extends Module
             'elements' => $elements,
         );
     }
-
-    public function installFixtures()
+*/
+    public function installTab($className, $tabName, $tabParentName = false)
     {
-        $return = true;
-        $tab_texts = array(
-            array('text' => $this->trans('Security policy (edit with module Customer reassurance)', array(), 'Modules.cmsseo.Shop'), 'file_name' => 'ic_verified_user_black_36dp_1x.png'),
-            array('text' => $this->trans('Delivery policy (edit with module Customer reassurance)', array(), 'Modules.cmsseo.Shop'), 'file_name' => 'ic_local_shipping_black_36dp_1x.png'),
-            array('text' => $this->trans('Return policy (edit with module Customer reassurance)', array(), 'Modules.cmsseo.Shop'), 'file_name' => 'ic_swap_horiz_black_36dp_1x.png'),
-        );
-
-        foreach ($tab_texts as $tab) {
-            $reassurance = new reassuranceClass();
-            foreach (Language::getLanguages(false) as $lang) {
-                $reassurance->text[$lang['id_lang']] = $tab['text'];
-            }
-            $reassurance->file_name = $tab['file_name'];
-            $reassurance->id_shop = $this->context->shop->id;
-            $return &= $reassurance->save();
+        $tab = new Tab();
+        $tab->active = 1;
+        $tab->class_name = $className;
+        $tab->name = array();
+        
+        foreach (Language::getLanguages(true) as $lang) {
+            $tab->name[$lang['id_lang']] = $tabName;
         }
-        return $return;
+        if ($tabParentName) {
+            $tab->id_parent = (int) Tab::getIdFromClassName($tabParentName);
+        } else {
+            $tab->id_parent = 0;
+        }
+        $tab->module = $this->name;
+        return $tab->add();
     }
-
+/*
     private function getImageURL($image)
     {
         return $this->context->link->getMediaLink(__PS_BASE_URI__.'modules/'.$this->name.'/img/'.$image);
     }
+    */
 }

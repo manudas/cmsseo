@@ -1,22 +1,24 @@
 <?php
 
-class codeExtractCore extends ObjectModel
+class codeCombinationCore extends ObjectModel
 {
 	public $id;
 	public $subreference;
 	public $blockreference;
-	public $text;
+	public $id_cms;
+	public $order;
 
 	public static $definition = array(
-		'table' => 'codeextracts',
+		'table' => 'codecombinations',
 		'primary' => 'id',
 		'multishop' => true,
 		'multilang' => true,
 		'fields' => array(
 			'id' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => false),
-			'subreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true),
-			'blockreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true),
-			'text' =>      			array('type' => self::TYPE_HTML, 'validate' => 'isString', 'required' => true)
+			'subreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'lang' => TRUE),
+			'blockreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'lang' => TRUE),
+			'id_cms' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'lang' => TRUE),
+			'order' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'lang' => TRUE)
 		),
 	);
 
@@ -45,31 +47,28 @@ class codeExtractCore extends ObjectModel
 	public static function createContentTable()
 	{
 
-
-		$sq1 = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.self::$definition['table'].'_lang`(
+		$sql = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.self::$definition['table'].'`(
 			`id` int(10) unsigned NOT NULL auto_increment,
 			PRIMARY KEY (`id`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
 
-
-		$sq2 = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.self::$definition['table'].'_lang`(
+		$sq2 = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.self::$definition['table'].'_shop`(
 			`id` int(10) unsigned NOT NULL auto_increment,
-			`id_shop` int(10) unsigned NOT NULL,
+			`id_shop` int(10) NOT NULL,
 			PRIMARY KEY (`id`, `id_shop`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
-
-
 
 		$sq3 = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.self::$definition['table'].'_lang`(
 			`id` int(10) unsigned NOT NULL auto_increment,
 			`id_lang` int(10) NOT NULL,
 			`subreference` varchar(32) NOT NULL,
 			`blockreference` varchar(32) NOT NULL,
-			`text` text NOT NULL,
-			PRIMARY KEY (`id`, `id_lang`), UNIQUE (`reference`, `subreference`)
+			`id_cms` int(10) NOT NULL,
+			`order` int(3) NOT NULL,
+			PRIMARY KEY (`id`, id_lang`), UNIQUE (`reference`, `subreference`, `id_cms`, `order`, `id_lang`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
 
-		return Db::getInstance()->execute($sql);
+		return Db::getInstance()->execute($sql) && Db::getInstance()->execute($sq2) && Db::getInstance()->execute($sq3);
 	}
 
 }
