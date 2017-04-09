@@ -200,14 +200,35 @@ class AdminCodeCombinationController extends ModuleAdminController
 	{
 		if (Tools::isSubmit('submitAdd'.$this->table))
 		{
-			// Create Object ExampleData
-			$exemple_data = new ExampleData();
-			$exemple_data->exampledate = array();
+
+
+			$shop = Tools::getValue('id_shop');
+			$id = Tools::getValue('id');
+
+			/*
+			'id' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => false),
+			'subreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'lang' => TRUE),
+			'blockreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'lang' => TRUE),
+			'id_cms' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'lang' => TRUE),
+			'order' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'lang' => TRUE)
+			*/
+			$code_combination = new CodeCombination($id, null, $shop);
 			$languages = Language::getLanguages(false);
-				foreach ($languages as $language)
-					$exemple_data->name[$language['id_lang']] = Tools::getValue('name_'.$language['id_lang']);
+
+			$code_combination->subreference = array();
+			$code_combination->blockreference = array();
+			$code_combination->id_cms = array();
+			$code_combination->order = array();
+			
+			foreach ($languages as $language){
+				$code_combination->subreference[$language['id_lang']] = Tools::getValue('subreference_'.$language['id_lang']);
+				$code_combination->blockreference[$language['id_lang']] = Tools::getValue('blockreference_'.$language['id_lang']);
+				$code_combination->id_cms[$language['id_lang']] = Tools::getValue('id_cms_'.$language['id_lang']);
+				$code_combination->order[$language['id_lang']] = Tools::getValue('order_'.$language['id_lang']);
+			}
+				
 			// Save object
-			if (!$exemple_data->save())
+			if (!$code_combination->save())
 				$this->errors[] = Tools::displayError('An error has occurred: Can\'t save the current object');
 			else
 				Tools::redirectAdmin(self::$currentIndex.'&conf=4&token='.$this->token);

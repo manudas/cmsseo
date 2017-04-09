@@ -200,14 +200,34 @@ class AdminCodeExtractController extends ModuleAdminController
 	{
 		if (Tools::isSubmit('submitAdd'.$this->table))
 		{
-			// Create Object ExampleData
-			$exemple_data = new ExampleData();
-			$exemple_data->exampledate = array();
+
+
+			$shop = Tools::getValue('id_shop');
+			$id = Tools::getValue('id');
+
+			/*
+			'fields' => array(
+				'id' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => false),
+				'subreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true),
+				'blockreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true),
+				'text' =>      			array('type' => self::TYPE_HTML, 'validate' => 'isString', 'required' => true)
+			),
+			*/
+			$code_extract = new CodeExtract($id, null, $shop);
 			$languages = Language::getLanguages(false);
-				foreach ($languages as $language)
-					$exemple_data->name[$language['id_lang']] = Tools::getValue('name_'.$language['id_lang']);
+
+			$code_extract->subreference = array();
+			$code_extract->blockreference = array();
+			$code_extract->text = array();
+			
+			foreach ($languages as $language){
+				$code_extract->subreference[$language['id_lang']] = Tools::getValue('subreference_'.$language['id_lang']);
+				$code_extract->blockreference[$language['id_lang']] = Tools::getValue('blockreference_'.$language['id_lang']);
+				$code_extract->text[$language['id_lang']] = Tools::getValue('id_cms_'.$language['id_lang']);
+			}
+				
 			// Save object
-			if (!$exemple_data->save())
+			if (!$code_extract->save())
 				$this->errors[] = Tools::displayError('An error has occurred: Can\'t save the current object');
 			else
 				Tools::redirectAdmin(self::$currentIndex.'&conf=4&token='.$this->token);

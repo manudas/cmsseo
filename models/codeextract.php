@@ -1,6 +1,6 @@
 <?php
 
-class codeExtractCore extends ObjectModel
+class CodeExtractCore extends ObjectModel
 {
 	public $id;
 	public $subreference;
