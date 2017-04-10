@@ -1,6 +1,6 @@
 <?php
 
-class CodeCombinationCore extends ObjectModel
+class CodeCombination extends ObjectModel
 {
 	public $id;
 	public $subreference;

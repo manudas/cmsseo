@@ -18,41 +18,41 @@
 if (!defined( '_PS_VERSION_' ))
 	exit;
 
-require_once (_PS_MODULE_DIR_.Tools::getValue('module').'/models/codeextract.php') ;
-
 class cmsseo extends Module
 {
-
     public function __construct()
     {
         $this->name = 'cmsseo';
+
+        require_once (_PS_MODULE_DIR_.$this->name.'/models/codeextract.php');
+
         $this->author = 'Manuel José Pulgar Anguita';
-        $this->version = '0.0';
+        $this->version = '0.1';
 
         $this->bootstrap = true;
         parent::__construct();
 
         $this->displayName = $this->trans('CMS SEO Module', array(), 'Modules.cmsseo.Admin');
-        $this->description = $this->trans('Generate your CMS pages in an automated and easy way, so you can improve faster your SEO.', array(), 'Modules.cmsseo.Admin');
+        $this->description = $this->trans('Generate your CMS pages in an automated and easy way, so you can improve your SEO faster.', array(), 'Modules.cmsseo.Admin');
 
-        $this->ps_versions_compliancy = array('min' => '1.7.1.0', 'max' => _PS_VERSION_);
+        $this->ps_versions_compliancy = array('min' => '1.7.0.0', 'max' => _PS_VERSION_);
 
         // $this->templateFile = 'module:cmsseo/views/templates/hook/cmsseo.tpl';
     }
 
     public function install()
     {
-        return parent::install()
-            && $this->installDB()
-            /*
-            && Configuration::updateValue('cmsseo_NBBLOCKS', 5)
-            */
+        return $this->installDB()
             && $this->installTabs()
-            /*
-            && $this->registerHook('displayOrderConfirmation2')
-            && $this->registerHook('actionUpdateLangAfter')
-            */
+            && parent::install()
         ;
+    }
+
+    private function installTabs() {
+        $this -> createSection($this -> name);
+        $parentTab = $this -> installTab('CodeCombination', 'Combinaciones de CMS', $this -> name);
+        $parentTab2 = $this -> installTab('CodeExtract', 'Extractos de CMS', $this -> name);
+        return $parentTab && $parentTab2;
     }
 
     public function installDB()
@@ -63,17 +63,22 @@ class cmsseo extends Module
     }
 
     private function uninstallTabs() {
+        $result = true;
         $tab_list = Tab::getCollectionFromModule($this -> name);
         if (!empty($tab_list)) {
             foreach ($tab_list as $tab) {
-                $tab -> delete();
+                $result &= $tab -> delete();
             }
         }
+        return $result;
     }
 
     public function uninstall()
     {
-        return $this -> uninstallTabs() && $this -> uninstallDB() && parent::uninstall();
+        // return parent::uninstall();
+        return $this -> uninstallTabs() 
+            && $this -> uninstallDB() 
+            && parent::uninstall();
     }
 
     public function uninstallDB()
@@ -289,44 +294,54 @@ class cmsseo extends Module
     {
         parent::_clearCache($this->templateFile);
     }
-/*
-    public function renderWidget($hookName = null, array $configuration = [])
-    {
-        if (!$this->isCached($this->templateFile, $this->getCacheId('cmsseo'))) {
-            $this->smarty->assign($this->getWidgetVariables($hookName, $configuration));
+
+    private function createSection($tab_section_name) {
+        $tab = new Tab();
+        $tab -> active = 1;
+        $tab -> class_name = $this -> name;
+        $tab -> module = $this -> name;
+        $tab -> name = array();
+        if (is_array($tab_section_name)) {
+            foreach (Language::getLanguages(true) as $lang) {
+                $tab -> name[$lang['id_lang']] = $tab_section_name[$lang['id_lang']];
+            }
         }
-
-        return $this->fetch($this->templateFile, $this->getCacheId('cmsseo'));
-    }
-*/    
-/*
-    public function getWidgetVariables($hookName = null, array $configuration = [])
-    {
-        $elements = $this->getListContent($this->context->language->id);
-
-        foreach ($elements as &$element) {
-            $element['image'] = $this->getImageURL($element['file_name']);
+        else {
+            foreach (Language::getLanguages(true) as $lang) {
+                $tab->name[$lang['id_lang']] = $tab_section_name;
+            }
         }
-
-        return array(
-            'elements' => $elements,
-        );
+        
+        $tab -> id_parent = 0;
+        
+       
+        $ok = $tab->add();
+        if ($ok == true) {
+            return $tab -> id;
+        }
+        else return null;
     }
-*/
-    public function installTab($className, $tabName, $tabParentName = false)
+
+    private function installTab($className, $tabName, $tabParentName = false)
     {
         $tab = new Tab();
         $tab->active = 1;
         $tab->class_name = $className;
         $tab->name = array();
-        
-        foreach (Language::getLanguages(true) as $lang) {
-            $tab->name[$lang['id_lang']] = $tabName;
+        if (is_array($tabName)) {
+            foreach (Language::getLanguages(true) as $lang) {
+                $tab->name[$lang['id_lang']] = $tabName[$lang['id_lang']];
+            }
+        }
+        else {
+            foreach (Language::getLanguages(true) as $lang) {
+                $tab->name[$lang['id_lang']] = $tabName;
+            }
         }
         if ($tabParentName) {
             $tab->id_parent = (int) Tab::getIdFromClassName($tabParentName);
         } else {
-            $tab->id_parent = 0;
+            $tab->id_parent = (int) Tab::getIdFromClassName('default') ;
         }
         $tab->module = $this->name;
         return $tab->add();

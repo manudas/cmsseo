@@ -1,6 +1,6 @@
 <?php
 
-class CodeExtractCore extends ObjectModel
+class CodeExtract extends ObjectModel
 {
 	public $id;
 	public $subreference;
@@ -46,13 +46,13 @@ class CodeExtractCore extends ObjectModel
 	{
 
 
-		$sq1 = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.self::$definition['table'].'_lang`(
+		$sq1 = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.self::$definition['table'].'`(
 			`id` int(10) unsigned NOT NULL auto_increment,
 			PRIMARY KEY (`id`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
 
 
-		$sq2 = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.self::$definition['table'].'_lang`(
+		$sq2 = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.self::$definition['table'].'_shop`(
 			`id` int(10) unsigned NOT NULL auto_increment,
 			`id_shop` int(10) unsigned NOT NULL,
 			PRIMARY KEY (`id`, `id_shop`)
@@ -66,10 +66,14 @@ class CodeExtractCore extends ObjectModel
 			`subreference` varchar(32) NOT NULL,
 			`blockreference` varchar(32) NOT NULL,
 			`text` text NOT NULL,
-			PRIMARY KEY (`id`, `id_lang`), UNIQUE (`reference`, `subreference`)
+			PRIMARY KEY (`id`, `id_lang`), UNIQUE (`blockreference`, `subreference`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
 
-		return Db::getInstance()->execute($sql);
+		$result = Db::getInstance()->execute($sq1) 
+			&& Db::getInstance()->execute($sq2) 
+			&& Db::getInstance()->execute($sq3);
+
+		return $result;
 	}
 
 }
