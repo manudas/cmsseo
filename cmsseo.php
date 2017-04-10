@@ -50,9 +50,35 @@ class cmsseo extends Module
 
     private function installTabs() {
         $sectionTab = $this -> createSection($this -> name);
-        $parentTab = $this -> installTab('CodeCombinator', 'Combinaciones de CMS', $this -> name);
-        $parentTab2 = $this -> installTab('CodeExtract', 'Extractos de CMS', $this -> name);
+        $parentTab = $this -> installTab('AdminCodeCombinator', 'Combinaciones de CMS', $this -> name);
+        $parentTab2 = $this -> installTab('AdminCodeExtract', 'Extractos de CMS', $this -> name);
         return $sectionTab && $parentTab && $parentTab2;
+    }
+
+
+    private function installTab($className, $tabName, $tabParentName = false)
+    {
+        $tab = new Tab();
+        $tab -> active = 1;
+        $tab -> class_name = $className;
+        $tab -> name = array();
+        if (is_array($tabName)) {
+            foreach (Language::getLanguages(true) as $lang) {
+                $tab -> name[$lang['id_lang']] = $tabName[$lang['id_lang']];
+            }
+        }
+        else {
+            foreach (Language::getLanguages(true) as $lang) {
+                $tab -> name[$lang['id_lang']] = $tabName;
+            }
+        }
+        if ($tabParentName) {
+            $tab -> id_parent = (int) Tab::getIdFromClassName($tabParentName);
+        } else {
+            $tab -> id_parent = (int) Tab::getIdFromClassName('default') ;
+        }
+        $tab -> module = $this -> name;
+        return $tab->add();
     }
 
     public function installDB()
@@ -322,30 +348,6 @@ class cmsseo extends Module
         else return null;
     }
 
-    private function installTab($className, $tabName, $tabParentName = false)
-    {
-        $tab = new Tab();
-        $tab -> active = 1;
-        $tab -> class_name = $className;
-        $tab -> name = array();
-        if (is_array($tabName)) {
-            foreach (Language::getLanguages(true) as $lang) {
-                $tab -> name[$lang['id_lang']] = $tabName[$lang['id_lang']];
-            }
-        }
-        else {
-            foreach (Language::getLanguages(true) as $lang) {
-                $tab -> name[$lang['id_lang']] = $tabName;
-            }
-        }
-        if ($tabParentName) {
-            $tab -> id_parent = (int) Tab::getIdFromClassName($tabParentName);
-        } else {
-            $tab -> id_parent = (int) Tab::getIdFromClassName('default') ;
-        }
-        $tab -> module = $this -> name;
-        return $tab->add();
-    }
 /*
     private function getImageURL($image)
     {

@@ -30,7 +30,7 @@ class AdminCodeCombinatorController extends ModuleAdminController
 	public function __construct()
 	{
 		$this->table = 'codecombination';
-		$this->className = 'CodeCombination'; // if fails without core use: codeCombinationCore
+		$this->className = 'CodeCombinator'; // if fails without core use: codeCombinationCore
 		$this->lang = true;
 		// $this->deleted = false;
 		// $this->colorOnBackground = false;
