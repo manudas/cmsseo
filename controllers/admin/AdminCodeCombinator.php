@@ -25,7 +25,7 @@
  * @since      	File available since Release 1.0
 */
 
-class AdminCodeCombinationController extends ModuleAdminController
+class AdminCodeCombinatorController extends ModuleAdminController
 {
 	public function __construct()
 	{
