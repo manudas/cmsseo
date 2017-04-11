@@ -7,16 +7,23 @@ class CodeExtract extends ObjectModel
 	public $blockreference;
 	public $text;
 
+	public function __construct($id = null, $id_lang = null, $id_shop = null) {
+		Shop::addTableAssociation(self::$definition['table'].'_shop', array('type' => 'shop'));
+		parent::__construct($id = null, $id_lang = null, $id_shop = null);
+	}
+
 	public static $definition = array(
 		'table' => 'codeextracts',
 		'primary' => 'id',
-		'multishop' => true,
+		// 'multishop' => true,
+		// 'multilang' => true,
 		'multilang' => true,
+        'multilang_shop' => true,
 		'fields' => array(
 			'id' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => false),
-			'subreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true),
-			'blockreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true),
-			'text' =>      			array('type' => self::TYPE_HTML, 'validate' => 'isString', 'required' => true)
+			'subreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true, 'lang' => TRUE, 'shop' => true),
+			'blockreference' =>     array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true, 'lang' => TRUE, 'shop' => true),
+			'text' =>      			array('type' => self::TYPE_HTML, 'validate' => 'isString', 'required' => true, 'lang' => TRUE, 'shop' => true)
 		),
 	);
 

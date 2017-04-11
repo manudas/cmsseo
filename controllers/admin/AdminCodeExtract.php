@@ -41,14 +41,13 @@ class AdminCodeExtractController extends ModuleAdminController
 
 		$this -> name = 'CodeExtract';
 
+		$this->multishop_context = Shop::CONTEXT_SHOP;
+
 		parent::__construct();
 
-		// $this->deleted = false;
-		// $this->colorOnBackground = false;
 		$this->bulk_actions = array('delete' => array('text' => $this->trans('Delete selected', array(), 'Modules.cmsseo.Admin'), 'confirm' => $this->trans('Delete selected items?', array(), 'Modules.cmsseo.Admin')));
 		$this->context = Context::getContext();
-		// définition de l'upload, chemin par défaut _PS_IMG_DIR_
-		// $this->fieldImageSettings = array('name' => 'image', 'dir' => 'example');
+
 		
 	}
 	/**
@@ -169,28 +168,6 @@ class AdminCodeExtractController extends ModuleAdminController
 					'hint' => $this->l('Invalid characters:').' <>;=#{}',
 					'size' => 65536
 				)
-				/*
-				,
-				array(
-					'type' => 'file',
-					'label' => $this->l('Logo:'),
-					'name' => 'image',
-					'display_image' => true,
-					'desc' => $this->l('Upload Example image from your computer')
-				),
-				array(
-					'type' => 'text',
-					'label' => $this->l('Lorem:'),
-					'name' => 'lorem',
-					'readonly' => true,
-					'disabled' => true,
-					'size' => 40
-				),
-				array(
-					'type' => 'date',
-					'name' => 'exampledate',
-				)
-				*/
 			),
 			'buttons' => array(
                 'cancelBlock' => array(
@@ -208,17 +185,8 @@ class AdminCodeExtractController extends ModuleAdminController
 		);
 		if (!($obj = $this->loadObject(true)))
 			return;
-		/* Thumbnail
-		 * @todo Error, deletion of the image
-		*/
-		/*
-		$image = ImageManager::thumbnail(_PS_IMG_DIR_.'region/'.$obj->id.'.jpg', $this->table.'_'.(int)$obj->id.'.'.$this->imageType, 350, $this->imageType, true);
-		$this->fields_value = array(
-			'image' => $image ? $image : false,
-			'size' => $image ? filesize(_PS_IMG_DIR_.'example/'.$obj->id.'.jpg') / 1000 : false,
-		);
-		*/
-		$this->fields_value = array('blockreference' => 'hacer');
+		/* @todo: 
+		cargar valores aqui*/
 		return parent::renderForm();
 	}
 	public function postProcess()
@@ -230,25 +198,17 @@ class AdminCodeExtractController extends ModuleAdminController
 			$shop = Tools::getValue('id_shop');
 			$id = Tools::getValue('id');
 
-			/*
-			'fields' => array(
-				'id' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => false),
-				'subreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true),
-				'blockreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true),
-				'text' =>      			array('type' => self::TYPE_HTML, 'validate' => 'isString', 'required' => true)
-			),
-			*/
 			$code_extract = new CodeExtract($id, null, $shop);
 			$languages = Language::getLanguages(false);
 
-			$code_extract->subreference = array();
-			$code_extract->blockreference = array();
-			$code_extract->text = array();
+			$code_extract -> subreference = array();
+			$code_extract -> blockreference = array();
+			$code_extract -> text = array();
 			
 			foreach ($languages as $language){
-				$code_extract->subreference[$language['id_lang']] = Tools::getValue('subreference_'.$language['id_lang']);
-				$code_extract->blockreference[$language['id_lang']] = Tools::getValue('blockreference_'.$language['id_lang']);
-				$code_extract->text[$language['id_lang']] = Tools::getValue('id_cms_'.$language['id_lang']);
+				$code_extract -> subreference[$language['id_lang']] = Tools::getValue('subreference_'.$language['id_lang']);
+				$code_extract -> blockreference[$language['id_lang']] = Tools::getValue('blockreference_'.$language['id_lang']);
+				$code_extract -> text[$language['id_lang']] = Tools::getValue('id_cms_'.$language['id_lang']);
 			}
 				
 			// Save object
