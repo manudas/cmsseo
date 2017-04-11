@@ -14,64 +14,74 @@
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 */
 
-/**
- * Tab Example - Controller Admin Example
- *
- * @category   	Module / checkout
- * @author     	PrestaEdit <j.danse@prestaedit.com>
- * @copyright  	2012 PrestaEdit
- * @version   	1.0
- * @link       	http://www.prestaedit.com/
- * @since      	File available since Release 1.0
-*/
-
 class AdminCodeCombinatorController extends ModuleAdminController
 {
 	public function __construct()
 	{
-		$this->table = 'codecombination';
-		$this->className = 'CodeCombinator'; // if fails without core use: codeCombinationCore
-		$this->lang = true;
+		$this -> table = 'codecombinations';
+		$this -> identifier = 'id'; // identifier in the table where the data is stored (for renderList method)
+
+		$this -> bootstrap = true;
+		$this -> className = 'CodeCombination'; // associated objectcontroller
+
+		$this -> show_form_cancel_button = false; // don't show default cancel button in renderForm
+		$this -> name = 'CodeCombinator';
+
+		$this -> lang = true;
+		parent::__construct();
 		// $this->deleted = false;
 		// $this->colorOnBackground = false;
-		$this->bulk_actions = array('delete' => array('text' => $this->l('Delete selected'), 'confirm' => $this->l('Delete selected items?')));
-		$this->context = Context::getContext();
+		$this -> bulk_actions = array('delete' => array('text' => $this->trans('Delete selected', array(), 'Modules.cmsseo.Admin'), 'confirm' => $this->trans('Delete selected items?', array(), 'Modules.cmsseo.Admin')));
+		$this -> context = Context::getContext();
 		// définition de l'upload, chemin par défaut _PS_IMG_DIR_
 		// $this->fieldImageSettings = array('name' => 'image', 'dir' => 'example');
-		parent::__construct();
+		
 	}
 	/**
 	 * Function used to render the list to display for this controller
 	 */
 	public function renderList()
 	{
-		$this->addRowAction('edit');
-		$this->addRowAction('delete');
-		$this->addRowAction('details');
-		$this->bulk_actions = array(
+		$this -> addRowAction('edit');
+		$this -> addRowAction('delete');
+		$this -> addRowAction('details');
+		$this -> bulk_actions = array(
 			'delete' => array(
-				'text' => $this->l('Delete selected'),
-				'confirm' => $this->l('Delete selected items?')
+				'text' => $this->trans('Delete selected', array(), 'Modules.cmsseo.Admin'),
+				'confirm' => $this->trans('Delete selected items?', array(), 'Modules.cmsseo.Admin')
 				)
 			);
-		$this->fields_list = array(
-			'id_example_data' => array(
-				'title' => $this->l('ID'),
+		$this -> fields_list = array(
+			'id' => array(
+				'title' => $this->trans('ID', array(), 'Modules.cmsseo.Admin'),
 				'align' => 'center',
 				'width' => 25
 			),
-			'name' => array(
-				'title' => $this->l('Name'),
+			'blockreference' => array(
+				'title' => $this->trans('Block reference', array(), 'Modules.cmsseo.Admin'),
 				'width' => 'auto',
 			),
+			'subreference' => array(
+				'title' => $this->trans('Inner reference', array(), 'Modules.cmsseo.Admin'),
+				'width' => 'auto',
+			),
+			'id_cms' => array(
+				'title' => $this->trans('Affected CMS', array(), 'Modules.cmsseo.Admin'),
+				'width' => 'auto',
+			),
+			'order' => array(
+				'title' => $this->trans('Order of the subreference', array(), 'Modules.cmsseo.Admin'),
+				'width' => 'auto',
+			)
 		);
 		// Gère les positions
-		$this->fields_list['position'] = array(
-			'title' => $this->l('Position'),
+		$this -> fields_list['position'] = array(
+			'title' => $this->trans('Position', array(), 'Modules.cmsseo.Admin'),
 			'width' => 70,
 			'align' => 'center',
 			'position' => 'position'
 		);
+
 		$lists = parent::renderList();
 		parent::initToolbar();
 		return $lists;
@@ -125,13 +135,20 @@ class AdminCodeCombinatorController extends ModuleAdminController
 
 	public function renderForm()
 	{
-		$this->fields_form = array(
+		$this -> fields_form = array(
 			'tinymce' => true,
 			'legend' => array(
 				'title' => $this->l('Accepted combinations'),
 				'image' => '../img/admin/cog.gif'
 			),
 			'input' => array(
+				array(
+					'type' => 'text',
+					'lang' => true,
+					'label' => $this->l('ID:'),
+					'name' => 'id',
+					'size' => 32
+				),
 				array(
 					'type' => 'text',
 					'lang' => true,
@@ -142,16 +159,23 @@ class AdminCodeCombinatorController extends ModuleAdminController
 				array(
 					'type' => 'text',
 					'lang' => true,
-					'label' => $this->l('Sub reference:'),
+					'label' => $this->l('Inner reference:'),
 					'name' => 'subreference',
 					'size' => 32
 				),
 				array(
 					'type' => 'text',
 					'lang' => true,
-					'label' => $this->l('Text:'),
-					'name' => 'text',
-					'size' => 1024
+					'label' => $this->l('ID CMS:'),
+					'name' => 'id_cms',
+					'size' => 32
+				),
+				array(
+					'type' => 'text',
+					'lang' => true,
+					'label' => $this->l('Position:'),
+					'name' => 'order',
+					'size' => 32
 				)
 				/*
 				,
@@ -176,6 +200,15 @@ class AdminCodeCombinatorController extends ModuleAdminController
 				)
 				*/
 			),
+			'buttons' => array(
+                'cancelBlock' => array(
+                    'title' => $this->trans('Cancel', array(), 'Modules.cmsseo.Admin'),
+                    'href' => (Tools::safeOutput(Tools::getValue('back', false)))
+                                ?: $this->context->link->getAdminLink('Admin'.$this->name),
+                    'icon' => 'process-icon-cancel',
+					'class' => 'pull-right'
+                )
+            ),
 			'submit' => array(
 				'title' => $this->l('Save'),
 				'class' => 'button'
@@ -193,7 +226,7 @@ class AdminCodeCombinatorController extends ModuleAdminController
 			'size' => $image ? filesize(_PS_IMG_DIR_.'example/'.$obj->id.'.jpg') / 1000 : false,
 		);
 		*/
-		$this->fields_value = array('blockreference' => 'hacer');
+		$this -> fields_value = array('blockreference' => 'hacer');
 		return parent::renderForm();
 	}
 	public function postProcess()

@@ -29,16 +29,27 @@ class AdminCodeExtractController extends ModuleAdminController
 {
 	public function __construct()
 	{
-		$this->table = 'codeextracts';
-		$this->className = 'codeExtract'; // if fails without core use: codeExtractCore
-		$this->lang = true;
+		$this -> table = 'codeextracts';
+		$this -> identifier = 'id'; // identifier in the table where the data is stored (for renderList method)
+
+		$this -> bootstrap = true;
+		//$this->display = 'view';
+		$this->show_form_cancel_button = false;
+
+		$this -> className = 'codeExtract'; // if fails without core use: codeExtractCore
+		$this -> lang = true;
+
+		$this -> name = 'CodeExtract';
+
+		parent::__construct();
+
 		// $this->deleted = false;
 		// $this->colorOnBackground = false;
-		$this->bulk_actions = array('delete' => array('text' => $this->l('Delete selected'), 'confirm' => $this->l('Delete selected items?')));
+		$this->bulk_actions = array('delete' => array('text' => $this->trans('Delete selected', array(), 'Modules.cmsseo.Admin'), 'confirm' => $this->trans('Delete selected items?', array(), 'Modules.cmsseo.Admin')));
 		$this->context = Context::getContext();
 		// définition de l'upload, chemin par défaut _PS_IMG_DIR_
 		// $this->fieldImageSettings = array('name' => 'image', 'dir' => 'example');
-		parent::__construct();
+		
 	}
 	/**
 	 * Function used to render the list to display for this controller
@@ -50,24 +61,24 @@ class AdminCodeExtractController extends ModuleAdminController
 		$this->addRowAction('details');
 		$this->bulk_actions = array(
 			'delete' => array(
-				'text' => $this->l('Delete selected'),
-				'confirm' => $this->l('Delete selected items?')
+				'text' => $this->trans('Delete selected', array(), 'Modules.cmsseo.Admin'),
+				'confirm' => $this->trans('Delete selected items?', array(), 'Modules.cmsseo.Admin')
 				)
 			);
 		$this->fields_list = array(
 			'id_example_data' => array(
-				'title' => $this->l('ID'),
+				'title' => $this->trans('ID', array(), 'Modules.cmsseo.Admin'),
 				'align' => 'center',
 				'width' => 25
 			),
 			'name' => array(
-				'title' => $this->l('Name'),
+				'title' => $this->trans('Name', array(), 'Modules.cmsseo.Admin'),
 				'width' => 'auto',
 			),
 		);
 		// Gère les positions
 		$this->fields_list['position'] = array(
-			'title' => $this->l('Position'),
+			'title' => $this->trans('Position', array(), 'Modules.cmsseo.Admin'),
 			'width' => 70,
 			'align' => 'center',
 			'position' => 'position'
@@ -128,30 +139,35 @@ class AdminCodeExtractController extends ModuleAdminController
 		$this->fields_form = array(
 			'tinymce' => true,
 			'legend' => array(
-				'title' => $this->l('Example'),
+				'title' => $this->trans('Example', array(), 'Modules.cmsseo.Admin'),
 				'image' => '../img/admin/cog.gif'
 			),
 			'input' => array(
 				array(
 					'type' => 'text',
 					'lang' => true,
-					'label' => $this->l('Block reference:'),
+					'label' => $this->trans('Block reference:', array(), 'Modules.cmsseo.Admin'),
 					'name' => 'blockreference',
 					'size' => 32
 				),
 				array(
 					'type' => 'text',
 					'lang' => true,
-					'label' => $this->l('Sub reference:'),
+					'label' => $this->trans('Sub reference:', array(), 'Modules.cmsseo.Admin'),
 					'name' => 'subreference',
 					'size' => 32
 				),
 				array(
-					'type' => 'text',
+					'type' => 'textarea',
 					'lang' => true,
-					'label' => $this->l('Text:'),
+					'label' => $this->trans('Text:', array(), 'Modules.cmsseo.Admin'),
 					'name' => 'text',
-					'size' => 1024
+					'cols' => 60,
+					'rows' => 20,
+					'class' => 'rte',
+					'autoload_rte' => true,
+					'hint' => $this->l('Invalid characters:').' <>;=#{}',
+					'size' => 65536
 				)
 				/*
 				,
@@ -176,8 +192,17 @@ class AdminCodeExtractController extends ModuleAdminController
 				)
 				*/
 			),
+			'buttons' => array(
+                'cancelBlock' => array(
+                    'title' => $this->trans('Cancel', array(), 'Modules.cmsseo.Admin'),
+                    'href' => (Tools::safeOutput(Tools::getValue('back', false)))
+                                ?: $this->context->link->getAdminLink('Admin'.$this->name),
+                    'icon' => 'process-icon-cancel',
+					'class' => 'pull-right'
+                )
+            ),
 			'submit' => array(
-				'title' => $this->l('Save'),
+				'title' => $this->trans('Save', array(), 'Modules.cmsseo.Admin'),
 				'class' => 'button'
 			)
 		);

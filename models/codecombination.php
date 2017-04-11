@@ -65,10 +65,16 @@ class CodeCombination extends ObjectModel
 			`blockreference` varchar(32) NOT NULL,
 			`id_cms` int(10) NOT NULL,
 			`order` int(3) NOT NULL,
-			PRIMARY KEY (`id`, id_lang`), UNIQUE (`reference`, `subreference`, `id_cms`, `order`, `id_lang`)
+			PRIMARY KEY (`id`, `id_lang`), UNIQUE (`blockreference`, `subreference`, `id_cms`, `order`, `id_lang`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
 
-		return Db::getInstance()->execute($sql) && Db::getInstance()->execute($sq2) && Db::getInstance()->execute($sq3);
+		$result1 = Db::getInstance()->execute($sql);
+		$result2 = Db::getInstance()->execute($sq2);
+		$result3 = Db::getInstance()->execute($sq3);
+
+		$result = $result1 && $result2 && $result3;
+
+		return $result;
 	}
 
 }

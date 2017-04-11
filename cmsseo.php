@@ -25,6 +25,8 @@ class cmsseo extends Module
         $this->name = 'cmsseo';
 
         require_once (_PS_MODULE_DIR_.$this->name.'/models/codeextract.php');
+        require_once (_PS_MODULE_DIR_.$this->name.'/models/codecombination.php');
+
 
         $this->author = 'Manuel José Pulgar Anguita';
         $this->version = '0.1';
@@ -83,8 +85,11 @@ class cmsseo extends Module
 
     public function installDB()
     {
-        $return = CodeExtract::createTables();
-       
+        $return1 = CodeExtract::createTables();
+        $return2 = CodeCombination::createTables();
+
+        $return = $return1 && $return2;
+
         return $return;
     }
 
@@ -109,7 +114,11 @@ class cmsseo extends Module
 
     public function uninstallDB()
     {
-        $return = CodeExtract::dropTables();
+        $return1 = CodeExtract::dropTables();
+        $return2 = CodeCombination::dropTables();
+
+        $return = $return1 && $return2;
+
         return $return;
     }
 
