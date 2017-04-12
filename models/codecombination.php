@@ -7,14 +7,24 @@ class CodeCombination extends ObjectModel
 	public $blockreference;
 	public $id_cms;
 	public $order;
+	public $id_shop;
+
+
+	public function __construct($id = null, $id_lang = null, $id_shop = null) {
+		$this -> id_shop = $id_shop;
+		Shop::addTableAssociation(self::$definition['table'], array('type' => 'shop'));
+		parent::__construct($id, $id_lang, $id_shop);
+	}
 
 	public static $definition = array(
 		'table' => 'codecombinations',
 		'primary' => 'id',
-		'multishop' => true,
+		// 'multishop' => true,
 		'multilang' => true,
+		'multilang_shop' => true,
 		'fields' => array(
 			'id' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => false),
+			'id_shop' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'shop' => true),
 			'subreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'lang' => TRUE),
 			'blockreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'lang' => TRUE),
 			'id_cms' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'lang' => TRUE),
@@ -49,6 +59,7 @@ class CodeCombination extends ObjectModel
 
 		$sql = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.self::$definition['table'].'`(
 			`id` int(10) unsigned NOT NULL auto_increment,
+			`id_shop` int(10) NOT NULL,
 			PRIMARY KEY (`id`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
 

@@ -26,7 +26,7 @@ class cmsseo extends Module
 
         require_once (_PS_MODULE_DIR_.$this->name.'/models/codeextract.php');
         require_once (_PS_MODULE_DIR_.$this->name.'/models/codecombination.php');
-
+        require_once (_PS_MODULE_DIR_.$this->name.'/models/codesubtitution.php');
 
         $this->author = 'Manuel José Pulgar Anguita';
         $this->version = '0.1';
@@ -52,8 +52,9 @@ class cmsseo extends Module
 
     private function installTabs() {
         $sectionTab = $this -> createSection($this -> name);
-        $parentTab = $this -> installTab('AdminCodeCombinator', 'Combinaciones de CMS', $this -> name);
-        $parentTab2 = $this -> installTab('AdminCodeExtract', 'Extractos de CMS', $this -> name);
+        $parentTab = $this -> installTab('AdminCodeCombinator', 'Combinaciones de código', $this -> name);
+        $parentTab2 = $this -> installTab('AdminCodeExtract', 'Extractos de código', $this -> name);
+        $parentTab2 = $this -> installTab('AdminCodeSubtitution', 'Sustituciones en código', $this -> name);
         return $sectionTab && $parentTab && $parentTab2;
     }
 

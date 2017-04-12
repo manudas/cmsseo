@@ -14,18 +14,18 @@
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 */
 
-class AdminCodeCombinatorController extends ModuleAdminController
+class AdminCodeSubtitutionController extends ModuleAdminController
 {
 	public function __construct()
 	{
-		$this -> table = 'codecombinations';
+		$this -> table = 'codesubtitutions';
 		$this -> identifier = 'id'; // identifier in the table where the data is stored (for renderList method)
 
 		$this -> bootstrap = true;
-		$this -> className = 'CodeCombination'; // associated objectcontroller
+		$this -> className = 'CodeSubtitution'; // associated objectcontroller
 
 		$this -> show_form_cancel_button = false; // don't show default cancel button in renderForm
-		$this -> name = 'CodeCombinator';
+		$this -> name = 'CodeSubtitution';
 
 		$this -> lang = true;
 		parent::__construct();
@@ -70,25 +70,14 @@ class AdminCodeCombinatorController extends ModuleAdminController
 				'title' => $this->trans('Block reference', array(), 'Modules.cmsseo.Admin'),
 				'width' => 'auto',
 			),
-			'subreference' => array(
-				'title' => $this->trans('Inner reference', array(), 'Modules.cmsseo.Admin'),
+			'search' => array(
+				'title' => $this->trans('String to search in code', array(), 'Modules.cmsseo.Admin'),
 				'width' => 'auto',
 			),
-			'id_cms' => array(
-				'title' => $this->trans('Affected CMS', array(), 'Modules.cmsseo.Admin'),
-				'width' => 'auto',
-			),
-			'order' => array(
-				'title' => $this->trans('Order of the subreference', array(), 'Modules.cmsseo.Admin'),
+			'replace' => array(
+				'title' => $this->trans('Replacement for the searched string', array(), 'Modules.cmsseo.Admin'),
 				'width' => 'auto',
 			)
-		);
-		// Gère les positions
-		$this -> fields_list['position'] = array(
-			'title' => $this->trans('Position', array(), 'Modules.cmsseo.Admin'),
-			'width' => 70,
-			'align' => 'center',
-			'position' => 'position'
 		);
 
 		$lists = parent::renderList();
@@ -162,35 +151,27 @@ class AdminCodeCombinatorController extends ModuleAdminController
 				array(
 					'type' => 'text',
 					'lang' => true,
-					'label' => $this->l('Block reference:'),
+					'label' => $this->l('String to search in the code:'),
+					'name' => 'search',
+					'required' => true,
+					'size' => 128
+				),
+				array(
+					'type' => 'text',
+					'lang' => true,
+					'label' => $this->l('Replacement of searched string:'),
+					'name' => 'replace',
+					'required' => true,
+					'size' => 32
+				),
+				array(
+					'type' => 'text',
+					'lang' => true,
+					'label' => $this->l('Related block reference:'),
 					'name' => 'blockreference',
 					'required' => true,
 					'size' => 32
 				),
-				array(
-					'type' => 'text',
-					'lang' => true,
-					'label' => $this->l('Inner reference:'),
-					'name' => 'subreference',
-					'required' => true,
-					'size' => 32
-				),
-				array(
-					'type' => 'text',
-					'lang' => true,
-					'label' => $this->l('ID CMS:'),
-					'name' => 'id_cms',
-					'required' => true,
-					'size' => 32
-				),
-				array(
-					'type' => 'text',
-					'lang' => true,
-					'label' => $this->l('Position:'),
-					'name' => 'order',
-					'required' => true,
-					'size' => 32
-				)
 			),
 			'buttons' => array(
                 'cancelBlock' => array(

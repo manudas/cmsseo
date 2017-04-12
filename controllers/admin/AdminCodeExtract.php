@@ -147,6 +147,7 @@ class AdminCodeExtractController extends ModuleAdminController
 					'lang' => true,
 					'label' => $this->trans('Block reference:', array(), 'Modules.cmsseo.Admin'),
 					'name' => 'blockreference',
+					'required' => true,
 					'size' => 32
 				),
 				array(
@@ -154,6 +155,7 @@ class AdminCodeExtractController extends ModuleAdminController
 					'lang' => true,
 					'label' => $this->trans('Sub reference:', array(), 'Modules.cmsseo.Admin'),
 					'name' => 'subreference',
+					'required' => true,
 					'size' => 32
 				),
 				array(
@@ -166,6 +168,7 @@ class AdminCodeExtractController extends ModuleAdminController
 					'class' => 'rte',
 					'autoload_rte' => true,
 					'hint' => $this->l('Invalid characters:').' <>;=#{}',
+					'required' => true,
 					'size' => 65536
 				)
 			),
@@ -204,18 +207,36 @@ class AdminCodeExtractController extends ModuleAdminController
 			$code_extract -> subreference = array();
 			$code_extract -> blockreference = array();
 			$code_extract -> text = array();
+
+			$default_lang = Configuration::get('PS_LANG_DEFAULT');
 			
 			foreach ($languages as $language){
 				$code_extract -> subreference[$language['id_lang']] = Tools::getValue('subreference_'.$language['id_lang']);
 				$code_extract -> blockreference[$language['id_lang']] = Tools::getValue('blockreference_'.$language['id_lang']);
-				$code_extract -> text[$language['id_lang']] = Tools::getValue('id_cms_'.$language['id_lang']);
+				$code_extract -> text[$language['id_lang']] = Tools::getValue('text_'.$language['id_lang']);
+
+				if ($default_lang == $language['id_lang']) {
+					if (empty ($code_extract -> blockreference[$language['id_lang']]) ) {
+						$this->errors[] = Tools::displayError('An error has occurred: blockreference couldn\'t be empty in the default language');
+					}
+					if (empty ($code_extract -> subreference[$language['id_lang']]) ) {
+						$this->errors[] = Tools::displayError('An error has occurred: subreference couldn\'t be empty in the default language');
+					}
+					if (empty ($code_extract -> text[$language['id_lang']]) ) {
+						$this->errors[] = Tools::displayError('An error has occurred: text couldn\'t be empty in the default language');
+					}				
+				}
 			}
 				
 			// Save object
-			if (!$code_extract->save())
-				$this->errors[] = Tools::displayError('An error has occurred: Can\'t save the current object');
-			else
-				Tools::redirectAdmin(self::$currentIndex.'&conf=4&token='.$this->token);
+			if (empty($this->errors)) {
+				if (!$code_extract->save()) {
+					$this->errors[] = Tools::displayError('An error has occurred: Can\'t save the current object');
+				}
+				else {
+					Tools::redirectAdmin(self::$currentIndex.'&conf=4&token='.$this->token);
+				}
+			}
 		}
 	}
 }
