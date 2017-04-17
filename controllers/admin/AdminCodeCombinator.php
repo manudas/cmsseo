@@ -27,11 +27,13 @@ class AdminCodeCombinatorController extends ModuleAdminController
 		$this -> show_form_cancel_button = false; // don't show default cancel button in renderForm
 		$this -> name = 'CodeCombinator';
 
+		// $this->module_name = 'combinationseo'; // se hace de forma automática
+
 		$this -> lang = true;
 		parent::__construct();
 		// $this->deleted = false;
 		// $this->colorOnBackground = false;
-		$this -> bulk_actions = array('delete' => array('text' => $this->trans('Delete selected', array(), 'Modules.cmsseo.Admin'), 'confirm' => $this->trans('Delete selected items?', array(), 'Modules.cmsseo.Admin')));
+		$this -> bulk_actions = array('delete' => array('text' => $this->trans('Delete selected', array(), 'Modules.combinationseo.Admin'), 'confirm' => $this->trans('Delete selected items?', array(), 'Modules.combinationseo.Admin')));
 		$this -> context = Context::getContext();
 		// définition de l'upload, chemin par défaut _PS_IMG_DIR_
 		// $this->fieldImageSettings = array('name' => 'image', 'dir' => 'example');
@@ -56,36 +58,40 @@ class AdminCodeCombinatorController extends ModuleAdminController
 		);
 		*/
 			'delete' => array(
-				'text' => $this->trans('Delete selected', array(), 'Modules.cmsseo.Admin'),
-				'confirm' => $this->trans('Delete selected items?', array(), 'Modules.cmsseo.Admin')
+				'text' => $this->trans('Delete selected', array(), 'Modules.combinationseo.Admin'),
+				'confirm' => $this->trans('Delete selected items?', array(), 'Modules.combinationseo.Admin')
 				)
 			);
 		$this -> fields_list = array(
 			'id' => array(
-				'title' => $this->trans('ID', array(), 'Modules.cmsseo.Admin'),
+				'title' => $this->trans('ID', array(), 'Modules.combinationseo.Admin'),
 				'align' => 'center',
 				'width' => 25
 			),
 			'blockreference' => array(
-				'title' => $this->trans('Block reference', array(), 'Modules.cmsseo.Admin'),
+				'title' => $this->trans('Block reference', array(), 'Modules.combinationseo.Admin'),
 				'width' => 'auto',
 			),
 			'subreference' => array(
-				'title' => $this->trans('Inner reference', array(), 'Modules.cmsseo.Admin'),
+				'title' => $this->trans('Inner reference', array(), 'Modules.combinationseo.Admin'),
 				'width' => 'auto',
 			),
-			'id_cms' => array(
-				'title' => $this->trans('Affected CMS', array(), 'Modules.cmsseo.Admin'),
+			'id_object' => array(
+				'title' => $this->trans('Affected Object', array(), 'Modules.combinationseo.Admin'),
+				'width' => 'auto',
+			),
+			'type' => array(
+				'title' => $this->trans('Type of page', array(), 'Modules.combinationseo.Admin'),
 				'width' => 'auto',
 			),
 			'order' => array(
-				'title' => $this->trans('Order of the subreference', array(), 'Modules.cmsseo.Admin'),
+				'title' => $this->trans('Order of the subreference', array(), 'Modules.combinationseo.Admin'),
 				'width' => 'auto',
 			)
 		);
 		// Gère les positions
 		$this -> fields_list['position'] = array(
-			'title' => $this->trans('Position', array(), 'Modules.cmsseo.Admin'),
+			'title' => $this->trans('Position', array(), 'Modules.combinationseo.Admin'),
 			'width' => 70,
 			'align' => 'center',
 			'position' => 'position'
@@ -147,46 +153,59 @@ class AdminCodeCombinatorController extends ModuleAdminController
 		$this -> fields_form = array(
 			'tinymce' => true,
 			'legend' => array(
-				'title' => $this->l('Accepted combinations'),
+				'title' =>  $this->trans('Accepted combinations', array(), 'Modules.cmsseo.Admin'),
 				'image' => '../img/admin/cog.gif'
 			),
 			'input' => array(
 				array(
 					'type' => 'text',
 					'lang' => true,
-					'label' => $this->l('ID:'),
+					'label' => $this->trans('ID:', array(), 'Modules.cmsseo.Admin'),
 					'name' => 'id',
-					'required' => true,
-					'size' => 32
+					'size' => 32,
+					'readonly' => true
 				),
 				array(
 					'type' => 'text',
 					'lang' => true,
-					'label' => $this->l('Block reference:'),
+					'label' => $this->trans('Block reference:', array(), 'Modules.cmsseo.Admin'),
 					'name' => 'blockreference',
+					'class' => 'blockreference',
 					'required' => true,
 					'size' => 32
 				),
 				array(
-					'type' => 'text',
+					'type' => 'select',
 					'lang' => true,
-					'label' => $this->l('Inner reference:'),
+					'label' => $this->trans('Inner reference:', array(), 'Modules.cmsseo.Admin'),
 					'name' => 'subreference',
 					'required' => true,
-					'size' => 32
+					// 'size' => 32
 				),
 				array(
 					'type' => 'text',
 					'lang' => true,
-					'label' => $this->l('ID CMS:'),
-					'name' => 'id_cms',
+					'label' => $this->trans('ID object:', array(), 'Modules.cmsseo.Admin'),
+					'name' => 'id_object',
 					'required' => true,
 					'size' => 32
 				),
 				array(
+					'type' => 'select',
+					'lang' => true,
+					'label' => $this->trans('Type of page:', array(), 'Modules.cmsseo.Admin'),
+					'name' => 'type',
+					'required' => true,
+					'options' => array(
+					'query' => CodeCombination::$_COMBINATION_TYPE_OPTIONS, // $options contains the data itself.
+					'id' => 'id_option',         							// The value of the 'id' key must be the same as the key for 'value' attribute of the <option> tag in each $options sub-array.
+					'name' => 'name'             							// The value of the 'name' key must be the same as the key for the text content of the <option> tag in each $options sub-array.
+				)
+				),
+				array(
 					'type' => 'text',
 					'lang' => true,
-					'label' => $this->l('Position:'),
+					'label' => $this->trans('Position:', array(), 'Modules.cmsseo.Admin'),
 					'name' => 'order',
 					'required' => true,
 					'size' => 32
@@ -194,7 +213,7 @@ class AdminCodeCombinatorController extends ModuleAdminController
 			),
 			'buttons' => array(
                 'cancelBlock' => array(
-                    'title' => $this->trans('Cancel', array(), 'Modules.cmsseo.Admin'),
+                    'title' => $this->trans('Cancel', array(), 'Modules.combinationseo.Admin'),
                     'href' => (Tools::safeOutput(Tools::getValue('back', false)))
                                 ?: $this->context->link->getAdminLink('Admin'.$this->name),
                     'icon' => 'process-icon-cancel',
@@ -202,7 +221,7 @@ class AdminCodeCombinatorController extends ModuleAdminController
                 )
             ),
 			'submit' => array(
-				'title' => $this->l('Save'),
+				'title' => $this->trans('Save', array(), 'Modules.combinationseo.Admin'),
 				'class' => 'button'
 			)
 		);
@@ -214,6 +233,52 @@ class AdminCodeCombinatorController extends ModuleAdminController
 		$this -> fields_value = array('blockreference' => 'hacer');
 		return parent::renderForm();
 	}
+
+
+	public function ajaxProcessGetSubreferencesOptions() {
+		
+		$options = "";
+
+		if (Tools::isSubmit('blockreference'))
+		{
+			$blockreference = Tools::getValue('blockreference');
+
+			$language_id = $this->context->language->id;
+
+			$code_extract_collection = new PrestashopCollection('CodeExtract', $language_id);
+			// $code_extract_collection -> sqlWhere ('LOWER(blockreference) like "%'. strtolower($blockreference). '%" AND id_lang = '.$language_id);
+			$code_extract_collection -> sqlWhere ('blockreference = "'. $blockreference . '" AND id_lang = '.$language_id);
+
+			// $hydrated_collection = $code_extract_collection -> getAll();
+			// if (!empty($code_extract_collection -> results)) {
+				
+			foreach ($code_extract_collection as $extract) {
+				$options .= "<option value='{$extract -> subreference}'>{$extract -> subreference}</option>";
+			}
+			// }
+		}
+		
+		echo $options;
+		die;
+	}
+
+
+	public function setMedia()
+	{
+		parent::setMedia();
+		
+		$this -> addJS(_MODULE_DIR_.$this->module->name.'/views/js/codecombinator.js');
+
+		// $this -> registerJavascript('codecombinator', _MODULE_DIR_.$this->module->name.'/views/js/codecombinator.js');
+	}
+
+	public function display() {
+		$script_url_combinator = "<script> url_code_combinator = '" . $this->context->link->getAdminLink('Admin'.$this->name, true) . "' </script>";
+		echo $script_url_combinator;
+		return parent::display();
+	}
+
+
 	public function postProcess()
 	{
 		if (Tools::isSubmit('submitAdd'.$this->table))
@@ -239,10 +304,11 @@ class AdminCodeCombinatorController extends ModuleAdminController
 			$code_combination->order = array();
 			
 			foreach ($languages as $language){
-				$code_combination->subreference[$language['id_lang']] = Tools::getValue('subreference_'.$language['id_lang']);
-				$code_combination->blockreference[$language['id_lang']] = Tools::getValue('blockreference_'.$language['id_lang']);
-				$code_combination->id_cms[$language['id_lang']] = Tools::getValue('id_cms_'.$language['id_lang']);
-				$code_combination->order[$language['id_lang']] = Tools::getValue('order_'.$language['id_lang']);
+				$code_combination -> subreference[$language['id_lang']] = Tools::getValue('subreference_'.$language['id_lang']);
+				$code_combination -> blockreference[$language['id_lang']] = Tools::getValue('blockreference_'.$language['id_lang']);
+				$code_combination -> id_object[$language['id_lang']] = Tools::getValue('id_object_'.$language['id_lang']);
+				$code_combination -> order[$language['id_lang']] = Tools::getValue('order_'.$language['id_lang']);
+				$code_combination -> type[$language['id_lang']] = Tools::getValue('type_'.$language['id_lang']);
 
 
 				if ($default_lang == $language['id_lang']) {
@@ -252,12 +318,15 @@ class AdminCodeCombinatorController extends ModuleAdminController
 					if (empty ($code_combination -> subreference[$language['id_lang']]) ) {
 						$this->errors[] = Tools::displayError('An error has occurred: subreference couldn\'t be empty in the default language');
 					}
-					if (empty ($code_combination -> id_cms[$language['id_lang']]) ) {
-						$this->errors[] = Tools::displayError('An error has occurred: id_cms couldn\'t be empty in the default language');
+					if (empty ($code_combination -> id_object[$language['id_lang']]) ) {
+						$this->errors[] = Tools::displayError('An error has occurred: id_object couldn\'t be empty in the default language');
 					}		
 					if (empty ($code_combination -> order[$language['id_lang']]) ) {
 						$this->errors[] = Tools::displayError('An error has occurred: order couldn\'t be empty in the default language');
 					}		
+					if (empty ($code_combination -> type[$language['id_lang']]) ) {
+						$this->errors[] = Tools::displayError('An error has occurred: type couldn\'t be empty in the default language');
+					}
 				}
 
 			}
@@ -268,9 +337,158 @@ class AdminCodeCombinatorController extends ModuleAdminController
 					$this->errors[] = Tools::displayError('An error has occurred: Can\'t save the current object');
 				}
 				else {
-					Tools::redirectAdmin(self::$currentIndex.'&conf=4&token='.$this->token);
+					Tools::redirectAdmin(self::$currentIndex.'&conf=4&token='.$this -> token);
 				}
 			}
 		}
+
+		parent::postProcess();
 	}
+
+	 /**
+    * @return An array with the following structure:
+    * - principal index: blockreference
+    * - secondary index: order of subreference
+    * - third index: subreference and ObjectModel CodeCombination
+    */
+    private function getSortedCombination($type, $blockreference = null, $subreferenceList = null) {
+        if (empty($type)) {
+            throw new PrestaShopException($this -> name .":: getSortedCombination:: Can't get set width an empty type");
+        }
+        $subreferenceString = "";
+        if (!empty($subreferenceList)) {
+            $subreferenceString = ' AND subreference IN ('.implode(',',$subreferenceList).')';
+        }
+        $blockreferenceString = "";
+        if (!empty($blockreference)) {
+            $blockreferenceString = ' AND blockreference = '.$blockreference;
+        }
+        $typeString = " type = '$type' ";
+
+        $combinationCollection = new PrestashopCollection('CodeCombination');
+        
+        $whereString = $typeString . $blockreferenceString . $subreferenceString;
+
+        $combinationCollection -> orderBy ('order');
+
+        $combinationCollection -> sqlWhere ($whereString);
+
+        $result = array();
+
+        if (!empty($combinationCollection)) {
+            foreach ($combinationCollection as $combination) {
+                $result [$combination -> blockreference] [$combination -> order] ['subreference'] = $combination -> subreference;
+                $result [$combination -> blockreference] [$combination -> order] ['object'] = $combination;
+            }
+        }
+        
+        return $result;
+    }
+
+	private function getCombinationReferenceStructure ($type, $blockreference = null, $subreferenceList = null){
+		if (empty($type)) {
+            throw new PrestaShopException($this -> name .":: getCombinationReferenceStructure:: Can't get set width an empty type");
+        }
+
+        $subreferenceString = "";
+        if (!empty($subreferenceList)) {
+            $subreferenceString = ' AND subreference IN ('.implode(',',$subreferenceList).')';
+        }
+        $blockreferenceString = "";
+        if (!empty($blockreference)) {
+            $blockreferenceString = ' AND blockreference = '.$blockreference;
+        }
+        $typeString = " type = '$type' ";
+
+        $combinationCollection = new PrestashopCollection('CodeCombination');
+
+        $whereString = $typeString . $blockreferenceString . $subreferenceString;
+
+        $combinationCollection -> orderBy ('order');
+
+        $combinationCollection -> sqlWhere ($whereString);
+
+        $result = array();
+
+        if (!empty($combinationCollection)) {
+            foreach ($combinationCollection as $combination) {
+                $result [$combination -> blockreference] [$combination -> subreference] = $combination;
+            }
+        }
+        
+        return $result;
+	}
+
+	private function replaceBlockReferenceInSortedCombination ($type, $blockreference = null, $subreferenceList = null){
+		$combinationseo_module = /* Module :: getInstanceByName ( */ $this -> module /* -> name)*/;
+
+		$codeExtractAdminController = $combinationseo_module -> getModuleAdminControllerByName('AdminCodeExtract');
+
+		$codeSubtitutionAdminController = $combinationseo_module -> getModuleAdminControllerByName('AdminCodeSubtitution');
+
+		$sortedCombination = $this -> getSortedCombination ( $type, $blockreference, $subreferenceList );
+
+		$combinationReferenceStructure = $this -> getCombinationReferenceStructure ($type, $blockreference, $subreferenceList );
+
+		if (!empty($sortedCombination)){
+
+			$extractArr = array();			
+
+			$sortedExtractArr = array();
+
+			$subtitutedSortedArr = array();
+
+			foreach ($combinationReferenceStructure as $key_block_reference => $combinationReference) {
+
+				/* Normalmente el bloque del primer foreach solo se va a ejecutar una vez."
+				 * Sin embargo se hace el foreach para producir fácilmente futuras
+				 * ampliaciones.
+				 */
+				$subreferenceList = array_keys ($combinationReference);			
+				$extractArr = $extractArr + $codeExtractAdminController -> getCodeExtractCollection ($key_block_reference, $subreferenceList);
+
+				$sortedBlock = $sortedCombination [$key_block_reference];
+
+				$subtitutions = $codeSubtitutionAdminController -> getSubtitutions($key_block_reference);
+				$searchArr = $subtitutions['search'];
+				$replaceArr = $subtitutions['replace'];
+
+				foreach ($sortedBlock as $order => $subreferenceStructure) {
+					$subject = $extractArr[$subreferenceStructure['subreference']]; // fills with non-subtituted text
+					$sortedExtractArr [$key_block_reference] [$order] = $subject;
+
+					$subtitutedSortedArr [$key_block_reference] [$order] = $codeSubtitutionAdminController -> replaceTokenList ($searchArr, $replaceArr, $subject);
+				}
+			}
+		}
+		
+		return $subtitutedSortedArr;
+	}
+
+	public function getReplacedBlockString ($type, $blockreference = null, $subreferenceList = null) {
+		$subtitutedBlockReferenceArr = $this -> replaceBlockReferenceInSortedCombination ($type, $blockreference, $subreferenceList);
+
+		if (!empty($subtitutedBlockReferenceArr)) {
+			
+			$result = array ();
+
+			firstforeachloop:			
+			foreach ($subtitutedBlockReferenceArr as $block_reference_key => $sortedSubtitutedList) {
+
+				/* Usually we only enter once in this loop (the fist foreach loop) */
+
+				$current_string = "";
+				innerforeachloop:
+				foreach ($sortedSubtitutedList as $order => $subtitutedText){ 
+					$current_string .= $subtitutedText;
+				}
+
+				$result[$block_reference_key] = $current_string;
+
+			}
+		}
+		
+		return $result;
+	}
+
 }

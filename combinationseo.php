@@ -18,11 +18,13 @@
 if (!defined( '_PS_VERSION_' ))
 	exit;
 
-class cmsseo extends Module
+class combinationseo extends Module
 {
+    private static $_controllerCache = array();
+
     public function __construct()
     {
-        $this->name = 'cmsseo';
+        $this -> name = 'combinationseo';
 
         require_once (_PS_MODULE_DIR_.$this->name.'/models/codeextract.php');
         require_once (_PS_MODULE_DIR_.$this->name.'/models/codecombination.php');
@@ -34,12 +36,12 @@ class cmsseo extends Module
         $this->bootstrap = true;
         parent::__construct();
 
-        $this->displayName = $this->trans('CMS SEO Module', array(), 'Modules.cmsseo.Admin');
-        $this->description = $this->trans('Generate your CMS pages in an automated and easy way, so you can improve your SEO faster.', array(), 'Modules.cmsseo.Admin');
+        $this->displayName = $this->trans('Combination SEO Module', array(), 'Modules.combinationseo.Admin');
+        $this->description = $this->trans('Generate your CMS pages in an automated and easy way, so you can improve your SEO faster.', array(), 'Modules.combinationseo.Admin');
 
         $this->ps_versions_compliancy = array('min' => '1.7.0.0', 'max' => _PS_VERSION_);
 
-        // $this->templateFile = 'module:cmsseo/views/templates/hook/cmsseo.tpl';
+        // $this->templateFile = 'module:combinationseo/views/templates/hook/combinationseo.tpl';
     }
 
     public function install()
@@ -52,14 +54,45 @@ class cmsseo extends Module
 
     private function installTabs() {
         $sectionTab = $this -> createSection($this -> name);
-        $parentTab = $this -> installTab('AdminCodeCombinator', 'Combinaciones de código', $this -> name);
-        $parentTab2 = $this -> installTab('AdminCodeExtract', 'Extractos de código', $this -> name);
-        $parentTab2 = $this -> installTab('AdminCodeSubtitution', 'Sustituciones en código', $this -> name);
-        return $sectionTab && $parentTab && $parentTab2;
+
+        $desplegableTab = $this -> installTab('AdminCodeCombinator', $this->trans('Combination SEO Module', array(), 'Modules.combinationseo.Admin') , $this -> name);
+        
+        $desplegableTab_id = (int) Tab::getIdFromClassName('AdminCodeCombinator');
+        
+        $parentTab = $this -> installTab('AdminCodeCombinator', $this->trans('Combinaciones de código', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
+        $parentTab2 = $this -> installTab('AdminCodeExtract', $this->trans('Extractos de código', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
+        $parentTab3 = $this -> installTab('AdminCodeSubtitution', $this->trans('Sustituciones en código', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
+        return $sectionTab && $desplegableTab && $parentTab && $parentTab2 && $parentTab3;
     }
 
+    private function createSection($tab_section_name) {
+        $tab = new Tab();
+        $tab -> active = 1;
+        $tab -> class_name = $this -> name; // solo sirve para hacer de "padre"
+        $tab -> module = $this -> name;
+        $tab -> name = array();
+        if (is_array($tab_section_name)) {
+            foreach (Language::getLanguages(true) as $lang) {
+                $tab -> name[$lang['id_lang']] = $tab_section_name[$lang['id_lang']];
+            }
+        }
+        else {
+            foreach (Language::getLanguages(true) as $lang) {
+                $tab->name[$lang['id_lang']] = $tab_section_name;
+            }
+        }
+        
+        $tab -> id_parent = 0;
+        
+       
+        $ok = $tab->add();
+        if ($ok == true) {
+            return $tab -> id;
+        }
+        else return null;
+    }
 
-    private function installTab($className, $tabName, $tabParentName = false)
+    private function installTab($className, $tabName, $tabParentName = false, $parentID = -1)
     {
         $tab = new Tab();
         $tab -> active = 1;
@@ -75,7 +108,10 @@ class cmsseo extends Module
                 $tab -> name[$lang['id_lang']] = $tabName;
             }
         }
-        if ($tabParentName) {
+        if ($parentID > -1) {
+            $tab -> id_parent = $parentID;
+        }
+        else if ($tabParentName) {
             $tab -> id_parent = (int) Tab::getIdFromClassName($tabParentName);
         } else {
             $tab -> id_parent = (int) Tab::getIdFromClassName('default') ;
@@ -88,8 +124,9 @@ class cmsseo extends Module
     {
         $return1 = CodeExtract::createTables();
         $return2 = CodeCombination::createTables();
+        $return3 = CodeSubtitution::createTables();
 
-        $return = $return1 && $return2;
+        $return = $return1 && $return2 && $return3;
 
         return $return;
     }
@@ -105,6 +142,7 @@ class cmsseo extends Module
         return $result;
     }
 
+
     public function uninstall()
     {
         // return parent::uninstall();
@@ -117,8 +155,9 @@ class cmsseo extends Module
     {
         $return1 = CodeExtract::dropTables();
         $return2 = CodeCombination::dropTables();
+        $return3 = CodeSubtitution::dropTables();
 
-        $return = $return1 && $return2;
+        $return = $return1 && $return2 && $return3;
 
         return $return;
     }
@@ -129,7 +168,7 @@ class cmsseo extends Module
         $html = '';
         $id_reassurance = (int)Tools::getValue('id_reassurance');
 
-        if (Tools::isSubmit('savecmsseo')) {
+        if (Tools::isSubmit('savecombinationseo')) {
             if ($id_reassurance = Tools::getValue('id_reassurance')) {
                 $reassurance = new reassuranceClass((int)$id_reassurance);
             } else {
@@ -161,7 +200,7 @@ class cmsseo extends Module
             }
         }
 
-        if (Tools::isSubmit('updatecmsseo') || Tools::isSubmit('addcmsseo')) {
+        if (Tools::isSubmit('updatecombinationseo') || Tools::isSubmit('addcombinationseo')) {
             $helper = $this->initForm();
             foreach (Language::getLanguages(false) as $lang) {
                 if ($id_reassurance) {
@@ -179,7 +218,7 @@ class cmsseo extends Module
             }
 
             return $html.$helper->generateForm($this->fields_form);
-        } elseif (Tools::isSubmit('deletecmsseo')) {
+        } elseif (Tools::isSubmit('deletecombinationseo')) {
             $reassurance = new reassuranceClass((int)$id_reassurance);
             if (file_exists(dirname(__FILE__).'/img/'.$reassurance->file_name)) {
                 unlink(dirname(__FILE__).'/img/'.$reassurance->file_name);
@@ -195,10 +234,10 @@ class cmsseo extends Module
         }
 
         if (isset($_POST['submitModule'])) {
-            Configuration::updateValue('cmsseo_NBBLOCKS', ((isset($_POST['nbblocks']) && $_POST['nbblocks'] != '') ? (int)$_POST['nbblocks'] : ''));
+            Configuration::updateValue('combinationseo_NBBLOCKS', ((isset($_POST['nbblocks']) && $_POST['nbblocks'] != '') ? (int)$_POST['nbblocks'] : ''));
             if ($this->removeFromDB() && $this->addToDB()) {
-                $this->_clearCache('cmsseo.tpl');
-                $output = '<div class="conf confirm">'.$this->trans('The block configuration has been updated.', array(), 'Modules.cmsseo.Admin').'</div>';
+                $this->_clearCache('combinationseo.tpl');
+                $output = '<div class="conf confirm">'.$this->trans('The block configuration has been updated.', array(), 'Modules.combinationseo.Admin').'</div>';
             } else {
                 $output = '<div class="conf error"><img src="../img/admin/disabled.gif"/>'.$this->trans('An error occurred while attempting to save.', array(), 'Admin.Notifications.Error').'</div>';
             }
@@ -220,7 +259,7 @@ class cmsseo extends Module
 
         $this->fields_form[0]['form'] = array(
             'legend' => array(
-                'title' => $this->trans('New reassurance block', array(), 'Modules.cmsseo.Admin'),
+                'title' => $this->trans('New reassurance block', array(), 'Modules.combinationseo.Admin'),
             ),
             'input' => array(
                 array(
@@ -246,7 +285,7 @@ class cmsseo extends Module
 
         $helper = new HelperForm();
         $helper->module = $this;
-        $helper->name_controller = 'cmsseo';
+        $helper->name_controller = 'combinationseo';
         $helper->identifier = $this->identifier;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
         foreach (Language::getLanguages(false) as $lang) {
@@ -263,7 +302,7 @@ class cmsseo extends Module
         $helper->allow_employee_form_lang = $default_lang;
         $helper->toolbar_scroll = true;
         $helper->title = $this->displayName;
-        $helper->submit_action = 'savecmsseo';
+        $helper->submit_action = 'savecombinationseo';
         $helper->toolbar_btn =  array(
             'save' =>
             array(
@@ -300,7 +339,7 @@ class cmsseo extends Module
 
         if (Shop::isFeatureActive()) {
             $this->fields_list['id_shop'] = array(
-                'title' => $this->trans('ID Shop', array(), 'Modules.cmsseo.Admin'),
+                'title' => $this->trans('ID Shop', array(), 'Modules.combinationseo.Admin'),
                 'align' => 'center',
                 'width' => 25,
                 'type' => 'int'
@@ -331,32 +370,7 @@ class cmsseo extends Module
         parent::_clearCache($this->templateFile);
     }
 
-    private function createSection($tab_section_name) {
-        $tab = new Tab();
-        $tab -> active = 1;
-        $tab -> class_name = $this -> name;
-        $tab -> module = $this -> name;
-        $tab -> name = array();
-        if (is_array($tab_section_name)) {
-            foreach (Language::getLanguages(true) as $lang) {
-                $tab -> name[$lang['id_lang']] = $tab_section_name[$lang['id_lang']];
-            }
-        }
-        else {
-            foreach (Language::getLanguages(true) as $lang) {
-                $tab->name[$lang['id_lang']] = $tab_section_name;
-            }
-        }
-        
-        $tab -> id_parent = 0;
-        
-       
-        $ok = $tab->add();
-        if ($ok == true) {
-            return $tab -> id;
-        }
-        else return null;
-    }
+    
 
 /*
     private function getImageURL($image)
@@ -364,4 +378,23 @@ class cmsseo extends Module
         return $this->context->link->getMediaLink(__PS_BASE_URI__.'modules/'.$this->name.'/img/'.$image);
     }
     */
+
+    public function getModuleAdminControllerByName($name) {
+        if (empty($name)) {
+            throw new PrestaShopException($this -> name .":: getModuleAdminControllerByName:: Can't get controller width an empty name");
+        }
+        if (!empty(self::$_controllerCache[$name])) {
+            return self::$_controllerCache[$name];
+        }
+
+        $include_string = __DIR__.'controllers/admin/' . $name;
+
+        require_once ($include_string);
+
+        $class_name_string = $name . 'Controller';
+
+        self::$_controllerCache[$name] = new $class_name_string();
+
+        return self::$_controllerCache[$name];
+    }
 }

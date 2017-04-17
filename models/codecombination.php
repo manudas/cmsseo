@@ -5,9 +5,25 @@ class CodeCombination extends ObjectModel
 	public $id;
 	public $subreference;
 	public $blockreference;
-	public $id_cms;
+	public $id_object;
+	public $type;
 	public $order;
 	public $id_shop;
+
+	public static $_COMBINATION_TYPE_OPTIONS = array(
+													array(
+														'id_option' => 1,            // The value of the 'value' attribute of the <option> tag.
+														'name' => 'cms'              // The value of the text content of the  <option> tag.
+													),
+													array(
+														'id_option' => 2,
+														'name' => 'product'
+													),
+													array(
+														'id_option' => 3,
+														'name' => 'category'
+													)
+												);
 
 
 	public function __construct($id = null, $id_lang = null, $id_shop = null) {
@@ -23,11 +39,12 @@ class CodeCombination extends ObjectModel
 		'multilang' => true,
 		'multilang_shop' => true,
 		'fields' => array(
-			'id' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => false),
+			'id' =>      				array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => false),
 			'id_shop' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'shop' => true),
-			'subreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'lang' => TRUE),
+			'subreference' =>      		array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'lang' => TRUE),
 			'blockreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'lang' => TRUE),
-			'id_cms' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'lang' => TRUE),
+			'id_object' =>      		array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'lang' => TRUE),
+			'type' =>					array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'values' => array('cms', 'product', 'category'), 'required' => true, 'lang' => TRUE),
 			'order' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'lang' => TRUE)
 		),
 	);
@@ -74,11 +91,15 @@ class CodeCombination extends ObjectModel
 			`id_lang` int(10) NOT NULL,
 			`subreference` varchar(32) NOT NULL,
 			`blockreference` varchar(32) NOT NULL,
-			`id_cms` int(10) NOT NULL,
+			`id_object` int(10) NOT NULL,
+			`type` enum("cms", "product", "category"),
 			`order` int(3) NOT NULL,
-			PRIMARY KEY (`id`, `id_lang`), UNIQUE (`blockreference`, `subreference`, `id_cms`, `order`, `id_lang`)
+			PRIMARY KEY (`id`, `id_lang`), 
+			UNIQUE (`blockreference`, `subreference`, `id_object`, `type`, `order`, `id_lang`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
 
+		// error_log($sq3);
+		
 		$result1 = Db::getInstance()->execute($sql);
 		$result2 = Db::getInstance()->execute($sq2);
 		$result3 = Db::getInstance()->execute($sq3);
@@ -86,6 +107,25 @@ class CodeCombination extends ObjectModel
 		$result = $result1 && $result2 && $result3;
 
 		return $result;
+	}
+
+	public static function getCombinationByObjectIdAndType($id_object, $type) {
+		if (empty($id_object)) {
+            throw new PrestaShopException("CodeCombination :: getBlockReferenceByObjectIdAndType:: Can't get codeCombination width an empty id_object");
+        }
+		if (empty($type)) {
+            throw new PrestaShopException("CodeCombination :: getBlockReferenceByObjectIdAndType:: Can't get codeCombination width an empty type");
+        }
+
+		$ps_collection = new PrestashopCollection('CodeCombination');
+
+		$whereString = 'id_object = ' . $id_object . ' AND type = ' . $type ;
+
+		$ps_collection -> sqlWhere ($whereString);
+
+		$combinationObject = $ps_collection -> getFirst();
+
+		return $combinationObject -> blockreference;
 	}
 
 }

@@ -9,7 +9,7 @@ class CodeExtract extends ObjectModel
 	public $id_shop;
 
 	public function __construct($id = null, $id_lang = null, $id_shop = null) {
-		$this -> id_shop = $id_shop;
+		// $this -> id_shop = $id_shop;
 		Shop::addTableAssociation(self::$definition['table'], array('type' => 'shop'));
 		parent::__construct($id, $id_lang, $id_shop);
 	}
@@ -23,7 +23,7 @@ class CodeExtract extends ObjectModel
         'multilang_shop' => true,
 		'fields' => array(
 			'id' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => false),
-			'id_shop' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'shop' => true),
+			'id_shop' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'shop' => true, 'lang' => TRUE),
 			'subreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true, 'lang' => TRUE ),
 			'blockreference' =>     array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true, 'lang' => TRUE),
 			'text' =>      			array('type' => self::TYPE_HTML, 'validate' => 'isString', 'required' => true, 'lang' => TRUE)

@@ -65,13 +65,21 @@ class AdminCodeExtractController extends ModuleAdminController
 				)
 			);
 		$this->fields_list = array(
-			'id_example_data' => array(
+			'id' => array(
 				'title' => $this->trans('ID', array(), 'Modules.cmsseo.Admin'),
 				'align' => 'center',
 				'width' => 25
 			),
-			'name' => array(
-				'title' => $this->trans('Name', array(), 'Modules.cmsseo.Admin'),
+			'blockreference' => array(
+				'title' => $this->trans('Block reference', array(), 'Modules.cmsseo.Admin'),
+				'width' => 'auto',
+			),
+			'subreference' => array(
+				'title' => $this->trans('Subreference of block', array(), 'Modules.cmsseo.Admin'),
+				'width' => 'auto',
+			),
+			'text' => array(
+				'title' => $this->trans('text', array(), 'Modules.cmsseo.Admin'),
 				'width' => 'auto',
 			),
 		);
@@ -238,5 +246,35 @@ class AdminCodeExtractController extends ModuleAdminController
 				}
 			}
 		}
+	}
+
+	public function getCodeExtractCollection ($blockreference, $subreferenceList = null) {
+		
+		if (empty($blockreference)) {
+            throw new PrestaShopException($this -> name .":: getCodeExtractCollection:: Can't get set width an empty blockreference");
+        }
+
+		$codeExtractCollection = new PrestashopCollection('CodeExtract');
+		
+		$subreferenceString = "";
+        if (!empty($subreferenceList)) {
+            $subreferenceString = ' AND subreference IN ('.implode(',',$subreferenceList).')';
+        }
+
+		$whereString = 'blockreference = ' . $blockreference . $subreferenceString;
+
+		$codeExtractCollection -> sqlWhere ($whereString);
+
+		$result = array();
+
+		if (!empty($codeExtractCollection)) {
+            foreach ($codeExtractCollection as $extract) {
+                $result [$extract -> blockreference] [$extract -> subreference] ['text'] = $extract -> text;
+                $result [$extract -> blockreference] [$extract -> subreference] ['object'] = $extract;
+            }
+        }
+
+		return $result;
+
 	}
 }
