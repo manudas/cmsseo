@@ -23,7 +23,7 @@ class CodeExtract extends ObjectModel
         'multilang_shop' => true,
 		'fields' => array(
 			'id' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => false),
-			'id_shop' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'shop' => true, 'lang' => TRUE),
+			'id_shop' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'shop' => true),
 			'subreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true, 'lang' => TRUE ),
 			'blockreference' =>     array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true, 'lang' => TRUE),
 			'text' =>      			array('type' => self::TYPE_HTML, 'validate' => 'isString', 'required' => true, 'lang' => TRUE)
@@ -71,6 +71,7 @@ class CodeExtract extends ObjectModel
 
 
 
+
 		$sq3 = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.self::$definition['table'].'_lang`(
 			`id` int(10) unsigned NOT NULL auto_increment,
 			`id_lang` int(10) NOT NULL,
@@ -78,7 +79,7 @@ class CodeExtract extends ObjectModel
 			`subreference` varchar(32) NOT NULL,
 			`blockreference` varchar(32) NOT NULL,
 			`text` text NOT NULL,
-			PRIMARY KEY (`id`, `id_lang`, `id_shop`), UNIQUE (`blockreference`, `subreference`)
+			PRIMARY KEY (`id`, `id_lang`, `id_shop`), UNIQUE (`blockreference`, `subreference`, `id_lang`, `id_shop`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
 
 		$result = Db::getInstance()->execute($sq1) 
