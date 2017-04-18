@@ -150,6 +150,7 @@ class AdminCodeCombinatorController extends ModuleAdminController
 
 	public function renderForm()
 	{
+		// die (Tools::toUnderscoreCase(substr($this->controller_name, 5)).'/');
 		$this -> fields_form = array(
 			'tinymce' => true,
 			'legend' => array(
@@ -175,7 +176,13 @@ class AdminCodeCombinatorController extends ModuleAdminController
 					'size' => 32
 				),
 				array(
-					'type' => 'select',
+					'type' => 'datalist',
+					/*
+					 aqui mas q select tal vez debería ser tipo datalist
+					y de paso adaptar js para que cargase los dato en el datalis y a fliaprrrrrrrrrrr
+
+					PD: pasar la opción option (u opciones si es multilenguage (mirar esquema del tpl))
+					*/
 					'lang' => true,
 					'label' => $this->trans('Inner reference:', array(), 'Modules.cmsseo.Admin'),
 					'name' => 'subreference',
