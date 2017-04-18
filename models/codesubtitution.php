@@ -64,10 +64,11 @@ class CodeSubtitution extends ObjectModel
 		$sq3 = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.self::$definition['table'].'_lang`(
 			`id` int(10) unsigned NOT NULL auto_increment,
 			`id_lang` int(10) NOT NULL,
+			`id_shop` int(10) NOT NULL,
 			`blockreference` varchar(32) NOT NULL,
 			`search` varchar(128) NOT NULL,
 			`replace` varchar(128) NOT NULL,
-			PRIMARY KEY (`id`, `id_lang`), UNIQUE (`blockreference`, `search`, `replace`, `id_lang`)
+			PRIMARY KEY (`id`, `id_lang`, `id_shop`), UNIQUE (`blockreference`, `search`, `replace`, `id_lang`, `id_shop`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
 
 		$result1 = Db::getInstance()->execute($sql);

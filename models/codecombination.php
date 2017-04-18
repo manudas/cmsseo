@@ -89,13 +89,14 @@ class CodeCombination extends ObjectModel
 		$sq3 = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.self::$definition['table'].'_lang`(
 			`id` int(10) unsigned NOT NULL auto_increment,
 			`id_lang` int(10) NOT NULL,
+			`id_shop` int(10) NOT NULL,
 			`subreference` varchar(32) NOT NULL,
 			`blockreference` varchar(32) NOT NULL,
 			`id_object` int(10) NOT NULL,
 			`type` enum("cms", "product", "category"),
 			`order` int(3) NOT NULL,
-			PRIMARY KEY (`id`, `id_lang`), 
-			UNIQUE (`blockreference`, `subreference`, `id_object`, `type`, `order`, `id_lang`)
+			PRIMARY KEY (`id`, `id_lang`, `id_shop`), 
+			UNIQUE (`blockreference`, `subreference`, `id_object`, `type`, `order`, `id_lang`, `id_shop`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
 
 		// error_log($sq3);
