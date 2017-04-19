@@ -36,6 +36,7 @@
 				<input type="text"
 					{if $input.type == 'datalist'}
 						list="datalist_{if isset($input.id)}{$input.id}_{$language.id_lang}{else}{$input.name}_{$language.id_lang}{/if}"
+						autocomplete="off"
 					{/if}
 					id="{if isset($input.id)}{$input.id}_{$language.id_lang}{else}{$input.name}_{$language.id_lang}{/if}"
 					name="{$input.name}_{$language.id_lang}"
@@ -106,6 +107,7 @@
 			<input type="text"
 				{if $input.type == 'datalist'}
 					list="datalist_{if isset($input.id)}{$input.id}{else}{$input.name}{/if}"
+					autocomplete="off"
 				{/if}
 				name="{$input.name}"
 				id="{if isset($input.id)}{$input.id}{else}{$input.name}{/if}"

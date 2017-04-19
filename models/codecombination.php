@@ -9,22 +9,22 @@ class CodeCombination extends ObjectModel
 	public $type;
 	public $order;
 	public $id_shop;
-
+/*
 	public static $_COMBINATION_TYPE_OPTIONS = array(
 													array(
-														'id_option' => 1,            // The value of the 'value' attribute of the <option> tag.
+														'id_option' => 'cms',            // The value of the 'value' attribute of the <option> tag.
 														'name' => 'cms'              // The value of the text content of the  <option> tag.
 													),
 													array(
-														'id_option' => 2,
+														'id_option' => 'product',
 														'name' => 'product'
 													),
 													array(
-														'id_option' => 3,
+														'id_option' => 'category',
 														'name' => 'category'
 													)
 												);
-
+*/
 
 	public function __construct($id = null, $id_lang = null, $id_shop = null) {
 		$this -> id_shop = $id_shop;
@@ -127,6 +127,47 @@ class CodeCombination extends ObjectModel
 		$combinationObject = $ps_collection -> getFirst();
 
 		return $combinationObject -> blockreference;
+	}
+
+
+	public function save() {
+		$languages = Language::getLanguages(false);
+		$default_language = Configuration::get('PS_LANG_DEFAULT');
+		
+		$default_language_type = $this -> type [$default_language];
+		
+		if ((empty($default_language_type)) || (!in_array($default_language_type, self::$definition['fields']['type']['values']))) {
+			return false;
+		}
+		else {
+			foreach ($languages as $language) {
+				if (empty($this -> type[$language['id_lang']])) {
+					$this -> type[$language['id_lang']] = $default_language_type;
+				}
+			}
+		}
+		
+		return parent::save();
+	}
+
+	public function update() {
+		$languages = Language::getLanguages(false);
+		$default_language = Configuration::get('PS_LANG_DEFAULT');
+		
+		$default_language_type = $this -> type [$default_language];
+		
+		if ((empty($default_language_type)) || (in_array($default_language_type, self::$definition['fields']['type']['values']))) {
+			return false;
+		}
+		else {
+			foreach ($languages as $language) {
+				if (empty($this -> type[$language['id_lang']])) {
+					$this -> type[$language['id_lang']] = $default_language_type;
+				}
+			}
+		}
+		
+		return parent::update();
 	}
 
 }

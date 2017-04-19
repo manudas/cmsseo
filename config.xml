@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+    <name>combinationseo</name>
+    <displayName><![CDATA[Combination SEO Module]]></displayName>
+    <version><![CDATA[0.1]]></version>
+    <description><![CDATA[Generate your CMS pages in an automated and easy way, so you can improve your SEO faster.]]></description>
+    <author><![CDATA[Manuel Jos&eacute; Pulgar Anguita]]></author>
+    <tab><![CDATA[]]></tab>
+    <is_configurable>1</is_configurable>
+    <need_instance>1</need_instance>
+	<limited_countries></limited_countries>
+</module>

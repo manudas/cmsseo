@@ -20,7 +20,39 @@
 class CMS extends CMSCore
 {
 
-    protected $module_name = 'combinationseo'; 
+
+
+    public function __construct($id = null, $id_lang = null, $id_shop = null){
+        parent::__construct($id, $id_lang , $id_shop);
+
+        /* Loading the module we ensure we have included the desired
+         * ObjectModel classes we are going to need next
+         */
+        $combinationseo_module = Module :: getInstanceByName ('combinationseo');
+
+        $adminCodeCombinatorController =  $combinationseo_module -> getModuleAdminControllerByName('AdminCodeCombinator');
+        
+        $blockReference = CodeCombination::getBlockReferenceByObjectIdAndType ($idCms, 'cms');
+        $combination_seo_string = $adminCodeCombinatorController -> getReplacedBlockString ('cms', $blockReference);
+        
+        $partial_result = array ('content' => $combination_seo_string);
+
+        $COMBINATIONSEO_CONCATENATE_RESULT = Configuration::get('COMBINATIONSEO_CONCATENATE_RESULT');
+
+        if ($COMBINATIONSEO_CONCATENATE_RESULT == 'true') {
+
+            $cms_result = parent :: getCMSContent($idCms, $idLang, $idShop);
+
+            $final_result = array ('content' => $partial_result['content'] . $cms_result['content']);
+        }
+        else {
+            $final_result = $partial_result;
+        }
+   
+        $i = 0;
+    }
+
+
 
     /**
      * @param int      $idCms
@@ -42,7 +74,7 @@ class CMS extends CMSCore
         /* Loading the module we ensure we have included the desired
          * ObjectModel classes we are going to need next
          */
-        $combinationseo_module = Module :: getInstanceByName ($this -> module_name);
+        $combinationseo_module = Module :: getInstanceByName ('combinationseo');
 
         $adminCodeCombinatorController =  $combinationseo_module -> getModuleAdminControllerByName('AdminCodeCombinator');
         
