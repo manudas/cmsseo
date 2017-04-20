@@ -248,33 +248,4 @@ class AdminCodeExtractController extends ModuleAdminController
 		}
 	}
 
-	public function getCodeExtractCollection ($blockreference, $subreferenceList = null) {
-		
-		if (empty($blockreference)) {
-            throw new PrestaShopException($this -> name .":: getCodeExtractCollection:: Can't get set width an empty blockreference");
-        }
-
-		$codeExtractCollection = new PrestashopCollection('CodeExtract');
-		
-		$subreferenceString = "";
-        if (!empty($subreferenceList)) {
-            $subreferenceString = ' AND subreference IN ('.implode(',',$subreferenceList).')';
-        }
-
-		$whereString = 'blockreference = ' . $blockreference . $subreferenceString;
-
-		$codeExtractCollection -> sqlWhere ($whereString);
-
-		$result = array();
-
-		if (!empty($codeExtractCollection)) {
-            foreach ($codeExtractCollection as $extract) {
-                $result [$extract -> blockreference] [$extract -> subreference] ['text'] = $extract -> text;
-                $result [$extract -> blockreference] [$extract -> subreference] ['object'] = $extract;
-            }
-        }
-
-		return $result;
-
-	}
 }
