@@ -137,7 +137,9 @@ class CombinationSeoCodeCombinatorModuleFrontController extends ModuleFrontContr
 				 * Sin embargo se hace el foreach para producir fácilmente futuras
 				 * ampliaciones.
 				 */
-				$subreferenceList = array_keys ($combinationReference);			
+                if (empty($subreferenceList)) {
+				    $subreferenceList = array_keys ($combinationReference);	
+                }		
 				$extractArr = $extractArr + $codeExtractAdminController -> getCodeExtractCollection ($key_block_reference, $lang_id, $subreferenceList);
 
 				$sortedBlock = $sortedCombination [$key_block_reference];

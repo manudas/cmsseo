@@ -32,9 +32,18 @@ class CMS extends CMSCore
 
         $frontCodeCombinatorController =  $combinationseo_module -> getModuleFrontControllerByName('CodeCombinator');
         
-        $blockReference = CodeCombination::getBlockReferenceByObjectIdAndType ($id, 'cms');
+        $blockReference = CodeCombination::getBlockReferenceByObjectIdAndType ($id, 'cms', $id_lang);
         
+
         if (!empty ($blockReference)) {
+
+            $this -> id = $id;
+            $this -> active = "1";
+            $this -> id_shop = $id_shop;
+
+            if (!is_array($blockReference) && !empty($id_lang)) {
+                $blockReference = array ($id_lang => $blockReference);
+            }
 
             foreach ($blockReference as $lang_id => $translated_blockReference) {
 
@@ -42,7 +51,10 @@ class CMS extends CMSCore
                     continue;
                 }
 
-                $combination_seo_string = $frontCodeCombinatorController -> getReplacedBlockString ('cms', $lang_id, $translated_blockReference);
+
+                $subreferenceList = CodeCombination::getSubReferenceByObjectIdTypeAndBlockreference( $id, 'cms', $id_lang, $translated_blockReference );
+
+                $combination_seo_string = $frontCodeCombinatorController -> getReplacedBlockString ('cms', $id_lang, $translated_blockReference, $subreferenceList);
                 
                 $partial_result = array ('content' => $combination_seo_string[$translated_blockReference]);
 
@@ -101,13 +113,33 @@ class CMS extends CMSCore
         $combinationseo_module = Module :: getInstanceByName ('combinationseo');
 
         $frontCodeCombinatorController =  $combinationseo_module -> getModuleFrontControllerByName('CodeCombinator');
-        
-        $blockReference = CodeCombination::getBlockReferenceByObjectIdAndType ($idCms, 'cms');
+               
+        $blockReference = CodeCombination::getBlockReferenceByObjectIdAndType ($idCms, 'cms', $idLang);
         
         if (!empty ($blockReference)) {
+
+            /* Blockreference siempre es un solo elemento pues idLang
+            * siempre esta seteado, o a un idioma pasado como
+            * parámetro o al idioma por defecto de la tienda
+            */
+            if (!is_array($blockReference) && !empty($idLang)) {
+                $blockReference = array ($idLang => $blockReference);
+            }
             
-            foreach ($blockReference as $lang_id => $translated_blockReference) {
-                $combination_seo_string = $frontCodeCombinatorController -> getReplacedBlockString ('cms', $blockReference);
+            /* en este caso solo entra una vez al foreach
+             * pues idLang o es un idioma dado o es nulo
+             * y entonces se setea al idoma por defecto
+             */
+
+            // foreach ($blockReference as $lang_id => $translated_blockReference) {
+/*
+                if ($idLang != $lang_id) {
+                    continue;
+                }
+*/
+                $subreferenceList = CodeCombination::getSubReferenceByObjectIdTypeAndBlockreference( $idCms, 'cms', $lang_id, $blockReference );
+                
+                $combination_seo_string = $frontCodeCombinatorController -> getReplacedBlockString ('cms', $lang_id, $blockReference, $subreferenceList);
                 
                 $partial_result = array ('content' => $combination_seo_string);
 
@@ -124,10 +156,47 @@ class CMS extends CMSCore
                 }
 
                 return $final_result;
-            }
+           // }
         }
         else {
             return parent :: getCMSContent($idCms, $idLang, $idShop);
         }
+    }
+
+
+    /**
+     * Checks if current object is associated to a shop.
+     *
+     * @since 1.7
+     * @param int|null $id_shop
+     * @return bool
+     */
+    public function isAssociatedToShop($id_shop = null)
+    {
+        if ($id_shop === null) {
+            $id_shop = Context::getContext()->shop->id;
+        }
+
+        $cache_id = 'objectmodel_shop_'.$this->def['classname'].'_'.(int)$this->id.'-'.(int)$id_shop;
+        if (!ObjectModel::$cache_objects || !Cache::isStored($cache_id)) {
+            
+            $combination_collection = new PrestashopCollection('CodeCombination');
+            $where_str = "a1.`type` = 'cms' AND a1.`id_object` = '" . $this -> id . "' AND a0.`id_shop` = '" . $id_shop ."'";
+            $combination_collection -> sqlWhere($where_str);
+
+            if (!empty($combination_collection [0])) {
+                $associated = $id_shop;
+            }
+
+
+            if (!ObjectModel::$cache_objects) {
+                return $associated;
+            }
+
+            Cache::store($cache_id, $associated);
+            return $associated;
+        }
+
+        return Cache::retrieve($cache_id);
     }
 }

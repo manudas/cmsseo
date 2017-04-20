@@ -96,7 +96,7 @@ class CodeCombination extends ObjectModel
 			`type` enum("cms", "product", "category"),
 			`order` int(3) NOT NULL,
 			PRIMARY KEY (`id`, `id_lang`, `id_shop`), 
-			UNIQUE (`blockreference`, `subreference`, `id_object`, `type`, `order`, `id_lang`, `id_shop`)
+			UNIQUE (`blockreference`, `subreference`, `id_object`, `type`, `id_lang`, `id_shop`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
 
 		// error_log($sq3);
@@ -110,7 +110,7 @@ class CodeCombination extends ObjectModel
 		return $result;
 	}
 
-	public static function getBlockReferenceByObjectIdAndType($id_object, $type) {
+	public static function getBlockReferenceByObjectIdAndType($id_object, $type, $id_lang) {
 		if (empty($id_object)) {
 			error_log("CodeCombination :: getBlockReferenceByObjectIdAndType:: Can't get codeCombination width an empty id_object");
             return null;
@@ -119,16 +119,16 @@ class CodeCombination extends ObjectModel
 		if (empty($type)) {
             throw new PrestaShopException("CodeCombination :: getBlockReferenceByObjectIdAndType:: Can't get codeCombination width an empty type");
         }
+		if (empty($id_lang)) {
+            throw new PrestaShopException("CodeCombination :: getBlockReferenceByObjectIdAndType:: Can't get codeCombination width an empty id_lang");
+        }
 
-		$ps_collection = new PrestashopCollection('CodeCombination');
+		$ps_collection = new PrestashopCollection('CodeCombination', $id_lang);
 
 		// $whereString = 'id_object = ' . $id_object . ' AND type = ' . $type ;
 		$whereString = 'id_object = "' . $id_object . '" AND type = "' . $type . '"' ;
 
 		$ps_collection -> sqlWhere ($whereString);
-
-// $ps_collection->getAll(true);
-		// $combinationObject = $ps_collection -> getFirst();
 
 		if (!empty($ps_collection[0])){
 			return $ps_collection[0] -> blockreference;
@@ -136,6 +136,39 @@ class CodeCombination extends ObjectModel
 		else {
 			return null;
 		}
+	}
+
+	public static function getSubReferenceByObjectIdTypeAndBlockreference( $id_object, $type, $id_lang, $blockreference ) {
+		if (empty($id_object)) {
+			error_log("CodeCombination :: getBlockReferenceByObjectIdAndType:: Can't get codeCombination width an empty id_object");
+            return null;
+			// throw new PrestaShopException("CodeCombination :: getBlockReferenceByObjectIdAndType:: Can't get codeCombination width an empty id_object");
+        }
+		if (empty($type)) {
+            throw new PrestaShopException("CodeCombination :: getBlockReferenceByObjectIdAndType:: Can't get codeCombination width an empty type");
+        }
+		if (empty($blockreference)) {
+            throw new PrestaShopException("CodeCombination :: getSubReferenceByObjectIdTypeAndBlockreference:: Can't get codeCombination width an empty blockreferencetype");
+        }
+		if (empty($id_lang)) {
+            throw new PrestaShopException("CodeCombination :: getSubReferenceByObjectIdTypeAndBlockreference:: Can't get codeCombination width an empty id_lang");
+        }
+
+		$ps_collection = new PrestashopCollection('CodeCombination', $id_lang);
+
+		// $whereString = 'id_object = ' . $id_object . ' AND type = ' . $type ;
+		$whereString = 'id_object = "' . $id_object . '" AND type = "' . $type . '" AND blockreference = "' . $blockreference .  '"' ;
+
+		$ps_collection -> sqlWhere ($whereString);
+
+		$result = array();
+		
+		foreach ($ps_collection as $combination) {
+			$result[] = $combination -> subreference;
+		}
+
+		return $result;
+
 	}
 
 
