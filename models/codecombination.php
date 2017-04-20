@@ -110,9 +110,11 @@ class CodeCombination extends ObjectModel
 		return $result;
 	}
 
-	public static function getCombinationByObjectIdAndType($id_object, $type) {
+	public static function getBlockReferenceByObjectIdAndType($id_object, $type) {
 		if (empty($id_object)) {
-            throw new PrestaShopException("CodeCombination :: getBlockReferenceByObjectIdAndType:: Can't get codeCombination width an empty id_object");
+			error_log("CodeCombination :: getBlockReferenceByObjectIdAndType:: Can't get codeCombination width an empty id_object");
+            return null;
+			// throw new PrestaShopException("CodeCombination :: getBlockReferenceByObjectIdAndType:: Can't get codeCombination width an empty id_object");
         }
 		if (empty($type)) {
             throw new PrestaShopException("CodeCombination :: getBlockReferenceByObjectIdAndType:: Can't get codeCombination width an empty type");
@@ -120,17 +122,24 @@ class CodeCombination extends ObjectModel
 
 		$ps_collection = new PrestashopCollection('CodeCombination');
 
-		$whereString = 'id_object = ' . $id_object . ' AND type = ' . $type ;
+		// $whereString = 'id_object = ' . $id_object . ' AND type = ' . $type ;
+		$whereString = 'id_object = "' . $id_object . '" AND type = "' . $type . '"' ;
 
 		$ps_collection -> sqlWhere ($whereString);
 
-		$combinationObject = $ps_collection -> getFirst();
+// $ps_collection->getAll(true);
+		// $combinationObject = $ps_collection -> getFirst();
 
-		return $combinationObject -> blockreference;
+		if (!empty($ps_collection[0])){
+			return $ps_collection[0] -> blockreference;
+		}
+		else {
+			return null;
+		}
 	}
 
 
-	public function save() {
+	public function save($null_values = false, $auto_date = true) {
 		$languages = Language::getLanguages(false);
 		$default_language = Configuration::get('PS_LANG_DEFAULT');
 		
@@ -150,7 +159,7 @@ class CodeCombination extends ObjectModel
 		return parent::save();
 	}
 
-	public function update() {
+	public function update($null_values = false) {
 		$languages = Language::getLanguages(false);
 		$default_language = Configuration::get('PS_LANG_DEFAULT');
 		

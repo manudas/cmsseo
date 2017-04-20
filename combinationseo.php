@@ -387,11 +387,30 @@ class combinationseo extends Module
             return self::$_controllerCache[$name];
         }
 
-        $include_string = __DIR__.'controllers/admin/' . $name;
+        $include_string = __DIR__.'/controllers/admin/' . $name . '.php';
 
         require_once ($include_string);
 
         $class_name_string = $name . 'Controller';
+
+        self::$_controllerCache[$name] = new $class_name_string();
+
+        return self::$_controllerCache[$name];
+    }
+
+    public function getModuleFrontControllerByName($name) {
+        if (empty($name)) {
+            throw new PrestaShopException($this -> name .":: getModuleFrontControllerByName:: Can't get controller width an empty name");
+        }
+        if (!empty(self::$_controllerCache[$name])) {
+            return self::$_controllerCache[$name];
+        }
+
+        $include_string = __DIR__.'/controllers/front/' . $name . '.php';
+
+        require_once ($include_string);
+
+        $class_name_string = $this -> name . $name . 'ModuleFrontController';
 
         self::$_controllerCache[$name] = new $class_name_string();
 

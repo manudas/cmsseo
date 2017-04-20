@@ -30,26 +30,32 @@ class CMS extends CMSCore
          */
         $combinationseo_module = Module :: getInstanceByName ('combinationseo');
 
-        $adminCodeCombinatorController =  $combinationseo_module -> getModuleAdminControllerByName('AdminCodeCombinator');
+        $frontCodeCombinatorController =  $combinationseo_module -> getModuleFrontControllerByName('CodeCombinator');
         
-        $blockReference = CodeCombination::getBlockReferenceByObjectIdAndType ($idCms, 'cms');
-        $combination_seo_string = $adminCodeCombinatorController -> getReplacedBlockString ('cms', $blockReference);
+        $blockReference = CodeCombination::getBlockReferenceByObjectIdAndType ($id, 'cms');
         
-        $partial_result = array ('content' => $combination_seo_string);
+        if (!empty ($blockReference)) {
 
-        $COMBINATIONSEO_CONCATENATE_RESULT = Configuration::get('COMBINATIONSEO_CONCATENATE_RESULT');
+            foreach ($blockReference as $lang_id => $translated_blockReference) {
+                $combination_seo_string = $frontCodeCombinatorController -> getReplacedBlockString ('cms', $blockReference);
+                
+                $partial_result = array ('content' => $combination_seo_string);
 
-        if ($COMBINATIONSEO_CONCATENATE_RESULT == 'true') {
+                $COMBINATIONSEO_CONCATENATE_RESULT = Configuration::get('COMBINATIONSEO_CONCATENATE_RESULT');
+            
+            
 
-            $cms_result = parent :: getCMSContent($idCms, $idLang, $idShop);
+                if ($COMBINATIONSEO_CONCATENATE_RESULT == 'true') {
 
-            $final_result = array ('content' => $partial_result['content'] . $cms_result['content']);
+                    $cms_result = parent :: getCMSContent($idCms, $idLang, $idShop);
+
+                    $final_result = array ('content' => $partial_result['content'] . $cms_result['content']);
+                }
+                else {
+                    $final_result = $partial_result;
+                }
+            }
         }
-        else {
-            $final_result = $partial_result;
-        }
-   
-        $i = 0;
     }
 
 
@@ -76,25 +82,34 @@ class CMS extends CMSCore
          */
         $combinationseo_module = Module :: getInstanceByName ('combinationseo');
 
-        $adminCodeCombinatorController =  $combinationseo_module -> getModuleAdminControllerByName('AdminCodeCombinator');
+        $frontCodeCombinatorController =  $combinationseo_module -> getModuleFrontControllerByName('CodeCombinator');
         
         $blockReference = CodeCombination::getBlockReferenceByObjectIdAndType ($idCms, 'cms');
-        $combination_seo_string = $adminCodeCombinatorController -> getReplacedBlockString ('cms', $blockReference);
         
-        $partial_result = array ('content' => $combination_seo_string);
+        if (!empty ($blockReference)) {
+            
+            foreach ($blockReference as $lang_id => $translated_blockReference) {
+                $combination_seo_string = $frontCodeCombinatorController -> getReplacedBlockString ('cms', $blockReference);
+                
+                $partial_result = array ('content' => $combination_seo_string);
 
-        $COMBINATIONSEO_CONCATENATE_RESULT = Configuration::get('COMBINATIONSEO_CONCATENATE_RESULT');
+                $COMBINATIONSEO_CONCATENATE_RESULT = Configuration::get('COMBINATIONSEO_CONCATENATE_RESULT');
 
-        if ($COMBINATIONSEO_CONCATENATE_RESULT == 'true') {
+                if ($COMBINATIONSEO_CONCATENATE_RESULT == 'true') {
 
-            $cms_result = parent :: getCMSContent($idCms, $idLang, $idShop);
+                    $cms_result = parent :: getCMSContent($idCms, $idLang, $idShop);
 
-            $final_result = array ('content' => $partial_result['content'] . $cms_result['content']);
+                    $final_result = array ('content' => $partial_result['content'] . $cms_result['content']);
+                }
+                else {
+                    $final_result = $partial_result;
+                }
+
+                return $final_result;
+            }
         }
         else {
-            $final_result = $partial_result;
+            return parent :: getCMSContent($idCms, $idLang, $idShop);
         }
-
-        return $final_result;
     }
 }
