@@ -20,6 +20,8 @@
 class CMS extends CMSCore
 {
 
+
+
     public function __construct($id = null, $id_lang = null, $id_shop = null){
         parent::__construct($id, $id_lang , $id_shop);
 
@@ -45,6 +47,8 @@ class CMS extends CMSCore
                 $partial_result = array ('content' => $combination_seo_string[$translated_blockReference]);
 
                 $COMBINATIONSEO_CONCATENATE_RESULT = Configuration::get('COMBINATIONSEO_CONCATENATE_RESULT');
+            
+            
 
                 if ($COMBINATIONSEO_CONCATENATE_RESULT == 'true') {
 
