@@ -15,14 +15,11 @@
 */
 
 /**
- * Tab Example - Controller Admin Example
+ * Tab Metadata - Controller Admin Metadata
  *
- * @category   	Module / checkout
- * @author     	PrestaEdit <j.danse@prestaedit.com>
- * @copyright  	2012 PrestaEdit
- * @version   	1.0
- * @link       	http://www.prestaedit.com/
- * @since      	File available since Release 1.0
+ * @category   	Module / frontofficefeatures
+ * @author     	Manuel José Pulgar Anguita <cibermanu@hotmail.com>
+ * @copyright  	2017 Manuel José Pulgar Anguita
 */
 
 class AdminMetaDataController extends ModuleAdminController
