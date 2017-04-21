@@ -93,7 +93,7 @@ class CodeCombination extends ObjectModel
 			`subreference` varchar(32) NOT NULL,
 			`blockreference` varchar(32) NOT NULL,
 			`id_object` int(10) NOT NULL,
-			`type` enum("cms", "product", "category"),
+			`type` enum("cms", "product", "category") NOT NULL,
 			`order` int(3) NOT NULL,
 			PRIMARY KEY (`id`, `id_lang`, `id_shop`), 
 			UNIQUE (`blockreference`, `subreference`, `id_object`, `type`, `order`, `id_lang`, `id_shop`)

@@ -29,9 +29,10 @@ class combinationseo extends Module
         require_once (_PS_MODULE_DIR_.$this->name.'/models/codeextract.php');
         require_once (_PS_MODULE_DIR_.$this->name.'/models/codecombination.php');
         require_once (_PS_MODULE_DIR_.$this->name.'/models/codesubtitution.php');
+        require_once (_PS_MODULE_DIR_.$this->name.'/models/combinationseometadata.php');
 
         $this->author = 'Manuel José Pulgar Anguita';
-        $this->version = '0.1';
+        $this->version = '0.2';
 
         $this->bootstrap = true;
         parent::__construct();
@@ -59,10 +60,12 @@ class combinationseo extends Module
         
         $desplegableTab_id = (int) Tab::getIdFromClassName('AdminCodeCombinator');
         
-        $parentTab = $this -> installTab('AdminCodeCombinator', $this->trans('Combinaciones de código', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
-        $parentTab2 = $this -> installTab('AdminCodeExtract', $this->trans('Extractos de código', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
-        $parentTab3 = $this -> installTab('AdminCodeSubtitution', $this->trans('Sustituciones en código', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
-        return $sectionTab && $desplegableTab && $parentTab && $parentTab2 && $parentTab3;
+        $tab = $this -> installTab('AdminCodeCombinator', $this->trans('Combinaciones de código', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
+        $tab2 = $this -> installTab('AdminCodeExtract', $this->trans('Extractos de código', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
+        $tab3 = $this -> installTab('AdminCodeSubtitution', $this->trans('Sustituciones en código', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
+        $tab4 = $this -> installTab('AdminMetaData', $this->trans('Meta Data for objects', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
+        
+        return $sectionTab && $desplegableTab && $tab && $tab2 && $tab3 && $tab4;
     }
 
     private function createSection($tab_section_name) {
