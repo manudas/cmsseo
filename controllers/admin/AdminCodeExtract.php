@@ -42,7 +42,12 @@ class AdminCodeExtractController extends ModuleAdminController
 
 		parent::__construct();
 
-		$this->bulk_actions = array('delete' => array('text' => $this->trans('Delete selected', array(), 'Modules.cmsseo.Admin'), 'confirm' => $this->trans('Delete selected items?', array(), 'Modules.cmsseo.Admin')));
+		$this->bulk_actions = array(
+			'delete' => array(
+							'text' => $this->trans('Delete selected', array(), 'Modules.combinationseo.Admin'), 
+							'confirm' => $this->trans('Delete selected items?', array(), 'Modules.combinationseo.Admin')
+						)
+				);
 		$this->context = Context::getContext();
 
 		
@@ -57,32 +62,32 @@ class AdminCodeExtractController extends ModuleAdminController
 		$this->addRowAction('details');
 		$this->bulk_actions = array(
 			'delete' => array(
-				'text' => $this->trans('Delete selected', array(), 'Modules.cmsseo.Admin'),
-				'confirm' => $this->trans('Delete selected items?', array(), 'Modules.cmsseo.Admin')
+				'text' => $this->trans('Delete selected', array(), 'Modules.combinationseo.Admin'),
+				'confirm' => $this->trans('Delete selected items?', array(), 'Modules.combinationseo.Admin')
 				)
 			);
 		$this->fields_list = array(
 			'id' => array(
-				'title' => $this->trans('ID', array(), 'Modules.cmsseo.Admin'),
+				'title' => $this->trans('ID', array(), 'Modules.combinationseo.Admin'),
 				'align' => 'center',
 				'width' => 25
 			),
 			'blockreference' => array(
-				'title' => $this->trans('Block reference', array(), 'Modules.cmsseo.Admin'),
+				'title' => $this->trans('Block reference', array(), 'Modules.combinationseo.Admin'),
 				'width' => 'auto',
 			),
 			'subreference' => array(
-				'title' => $this->trans('Subreference of block', array(), 'Modules.cmsseo.Admin'),
+				'title' => $this->trans('Subreference of block', array(), 'Modules.combinationseo.Admin'),
 				'width' => 'auto',
 			),
 			'text' => array(
-				'title' => $this->trans('text', array(), 'Modules.cmsseo.Admin'),
+				'title' => $this->trans('text', array(), 'Modules.combinationseo.Admin'),
 				'width' => 'auto',
 			),
 		);
 		// Gère les positions
 		$this->fields_list['position'] = array(
-			'title' => $this->trans('Position', array(), 'Modules.cmsseo.Admin'),
+			'title' => $this->trans('Position', array(), 'Modules.combinationseo.Admin'),
 			'width' => 70,
 			'align' => 'center',
 			'position' => 'position'
@@ -143,22 +148,22 @@ class AdminCodeExtractController extends ModuleAdminController
 		$this->fields_form = array(
 			'tinymce' => true,
 			'legend' => array(
-				'title' => $this->trans('Extract', array(), 'Modules.cmsseo.Admin'),
+				'title' => $this->trans('Extract', array(), 'Modules.combinationseo.Admin'),
 				'image' => '../img/admin/cog.gif'
 			),
 			'input' => array(
 				array(
 					'type' => 'text',
-					'lang' => true,
-					'label' => $this->trans('Block reference:', array(), 'Modules.cmsseo.Admin'),
+					// 'lang' => true,
+					'label' => $this->trans('Block reference:', array(), 'Modules.combinationseo.Admin'),
 					'name' => 'blockreference',
 					'required' => true,
 					'size' => 32
 				),
 				array(
 					'type' => 'text',
-					'lang' => true,
-					'label' => $this->trans('Sub reference:', array(), 'Modules.cmsseo.Admin'),
+					// 'lang' => true,
+					'label' => $this->trans('Sub reference:', array(), 'Modules.combinationseo.Admin'),
 					'name' => 'subreference',
 					'required' => true,
 					'size' => 32
@@ -166,7 +171,7 @@ class AdminCodeExtractController extends ModuleAdminController
 				array(
 					'type' => 'textarea',
 					'lang' => true,
-					'label' => $this->trans('Text:', array(), 'Modules.cmsseo.Admin'),
+					'label' => $this->trans('Text:', array(), 'Modules.combinationseo.Admin'),
 					'name' => 'text',
 					'cols' => 60,
 					'rows' => 20,
@@ -179,7 +184,7 @@ class AdminCodeExtractController extends ModuleAdminController
 			),
 			'buttons' => array(
                 'cancelBlock' => array(
-                    'title' => $this->trans('Cancel', array(), 'Modules.cmsseo.Admin'),
+                    'title' => $this->trans('Cancel', array(), 'Modules.combinationseo.Admin'),
                     'href' => (Tools::safeOutput(Tools::getValue('back', false)))
                                 ?: $this->context->link->getAdminLink('Admin'.$this->name),
                     'icon' => 'process-icon-cancel',
@@ -187,14 +192,24 @@ class AdminCodeExtractController extends ModuleAdminController
                 )
             ),
 			'submit' => array(
-				'title' => $this->trans('Save', array(), 'Modules.cmsseo.Admin'),
+				'title' => $this->trans('Save', array(), 'Modules.combinationseo.Admin'),
 				'class' => 'button'
 			)
 		);
 		if (!($obj = $this->loadObject(true)))
 			return;
-		/* @todo: 
-		cargar valores aqui*/
+		
+
+		$id = Tools::getValue('id');
+
+		if (!empty($id)) { // editing, not adding new meta
+			$extract = new CodeExtract($id);
+			foreach (CodeExtract::$definition['fields'] as $field){
+				$this -> fields_value = array($field => $extract -> $field);
+			}
+		}
+
+
 		return parent::renderForm();
 	}
 	public function postProcess()
@@ -209,24 +224,18 @@ class AdminCodeExtractController extends ModuleAdminController
 			$code_extract = new CodeExtract($id, null, $shop);
 			$languages = Language::getLanguages(false);
 
-			$code_extract -> subreference = array();
-			$code_extract -> blockreference = array();
+			$code_extract -> subreference = Tools::getValue('subreference');
+			$code_extract -> blockreference =  Tools::getValue('blockreference');
 			$code_extract -> text = array();
 
 			$default_lang = Configuration::get('PS_LANG_DEFAULT');
 			
 			foreach ($languages as $language){
-				$code_extract -> subreference[$language['id_lang']] = Tools::getValue('subreference_'.$language['id_lang']);
-				$code_extract -> blockreference[$language['id_lang']] = Tools::getValue('blockreference_'.$language['id_lang']);
+				
 				$code_extract -> text[$language['id_lang']] = Tools::getValue('text_'.$language['id_lang']);
 
 				if ($default_lang == $language['id_lang']) {
-					if (empty ($code_extract -> blockreference[$language['id_lang']]) ) {
-						$this->errors[] = Tools::displayError('An error has occurred: blockreference couldn\'t be empty in the default language');
-					}
-					if (empty ($code_extract -> subreference[$language['id_lang']]) ) {
-						$this->errors[] = Tools::displayError('An error has occurred: subreference couldn\'t be empty in the default language');
-					}
+					
 					if (empty ($code_extract -> text[$language['id_lang']]) ) {
 						$this->errors[] = Tools::displayError('An error has occurred: text couldn\'t be empty in the default language');
 					}				

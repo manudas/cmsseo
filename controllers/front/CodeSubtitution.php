@@ -79,15 +79,31 @@ class CombinationSeoCodeSubtitutionModuleFrontController extends ModuleFrontCont
         return $result_string;
     }
 
-	public function getSubtitutions($blockReference){
+	public function getSubtitutions($blockReference, $id_lang, $id_shop){
 		if (empty($blockReference)) {
             throw new PrestaShopException($this -> name .":: getSubtitutionCollection:: Can't get subtitutions width an empty blockReference");
         }
 
-		$subtitutionCollection = new PrestashopCollection('CodeSubtitution');
-        $sqlWhere = 'blockreference = "' . $blockReference .'"';
-        $subtitutionCollection -> sqlWhere($sqlWhere);
-// $subtitutionCollection -> getAll(true);
+/*
+		if (!empty($id_shop)) {
+			$shop_where = '" AND id_shop = "' . $id_shop . '"';
+		}
+		else {
+			$shop_where = '';
+		}
+*/
+
+        if (empty($id_shop)) {
+            $id_shop = Context::getContext()->shop->id;
+        }
+		$subtitutionCollection = new PrestashopCollection('CodeSubtitution', $id_lang);
+        //$sqlWhere = 'blockreference = "' . $blockReference . '"' . $shop_where; 
+        // $subtitutionCollection -> sqlWhere($sqlWhere);
+
+        $subtitutionCollection -> where ('blockreference', '=', $blockReference);
+
+        $subtitutionCollection -> where ('id_shop', '=', $id_shop);
+
 		$searchArr = array();
         $replaceArr = array();
 
@@ -103,7 +119,7 @@ class CombinationSeoCodeSubtitutionModuleFrontController extends ModuleFrontCont
 		return array ('search' => $searchArr, 'replace' => $replaceArr);
 	}
 
-    public function replaceBlock ($blockReference, $subreferenceList = null/*, $search, $replace, $subject*/){
+    public function replaceBlock ($id_lang, $id_shop, $blockReference, $subreferenceList = null/*, $search, $replace, $subject*/){
         if (empty($blockReference)) {
             throw new PrestaShopException($this -> name .":: replaceBlock:: Can't replace width an empty blockReference");
         }
@@ -111,18 +127,46 @@ class CombinationSeoCodeSubtitutionModuleFrontController extends ModuleFrontCont
         $result = null;
 
         // no controlamos más errores, pues estos se controlan en métodos interiores
+        /*
         $subreferenceString = "";
         if (!empty($subreferenceList)) {
             $subreferenceString = ' AND subreference IN ("'.implode('","',$subreferenceList).'")';
             // $subreferenceString = ' AND subreference IN ('.implode(',',$subreferenceList).')';
         }
+*/
 
-		$subtitutions = $this -> getSubtitutions($blockReference);
+        if (empty($id_shop)) {
+            $id_shop = Context::getContext()->shop->id;
+        }
 
-        $extractCollection = new PrestashopCollection('CodeExtract');
-        $where_extract = 'blockreference = '. $blockreference . $subreferenceString;
+        /*
+        // if (!empty($id_shop)) {
+			$shop_where = '" AND id_shop = "' . $id_shop . '"';
+		//}
+		//else {
+		//	$shop_where = '';
+		//}
+*/
+
+		$subtitutions = $this -> getSubtitutions($blockReference, $id_lang, $id_shop);
+
+
+        $extractCollection = new PrestashopCollection('CodeExtract', $id_lang);
+
+
+        $extractCollection -> where ('blockreference', '=', $blockReference);
+
+        $extractCollection -> where ('id_shop', '=', $id_shop);
+
+        if (!empty($subreferenceList)) {
+            $extractCollection -> where ('subreference', 'in', $subreferenceList);
+        }
+
+
+/*
+        $where_extract = 'blockreference = '. $blockreference . $subreferenceString . $shop_where;
         $extractCollection -> sqlWhere ($where_extract);
-
+*/
 		$searchArr = $subtitutions['search'];
 		$replaceArr = $subtitutions['replace'];
 

@@ -36,7 +36,7 @@ class AdminMetaDataController extends ModuleAdminController
 		$this -> className = 'CombinationSeoMetaData'; 
 		$this -> lang = true;
 
-		$this -> name = 'CombinationSeoMetaData';
+		$this -> name = 'MetaData';
 
 		$this->multishop_context = Shop::CONTEXT_SHOP;
 
@@ -140,6 +140,13 @@ class AdminMetaDataController extends ModuleAdminController
 
 	public function renderForm()
 	{
+
+		$type_selector_options = array (
+			array ('id_option' => 'cms', 'name' => 'cms'),
+			array ('id_option' => 'category', 'name' => 'category'),
+			array ('id_option' => 'product', 'name' => 'product')
+		);
+
 		$this->fields_form = array(
 			'tinymce' => true,
 			'legend' => array(
@@ -147,24 +154,11 @@ class AdminMetaDataController extends ModuleAdminController
 				'image' => '../img/admin/cog.gif'
 			),
 
-/*
-
-		'fields' => array(
-			'id' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => false),
-			'id_shop' =>      		array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'shop' => true),
-			'id_object' =>      	array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'lang' => TRUE ),
-			'object_type' =>		array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'values' => array('cms', 'product', 'category'), 'required' => true, 'lang' => TRUE),
-			'meta_title' =>     	array('type' => self::TYPE_STRING, 'validate' => 'isString', 'lang' => TRUE, 'size' => 128),
-			'meta_description' =>   array('type' => self::TYPE_STRING, 'validate' => 'isString', 'lang' => TRUE, 'size' => 255),
-			'meta_keywords' =>  	array('type' => self::TYPE_STRING, 'validate' => 'isString', 'lang' => TRUE, 'size' => 255),
-			'link_rewrite' => 		array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true, 'lang' => TRUE, 'size' => 128)
-		),
-
-*/		
+	
 			'input' => array(
 				array(
 					'type' => 'text',
-					'lang' => true,
+					// 'lang' => true,
 					'label' => $this->trans('ID:', array(), 'Modules.cmsseo.Admin'),
 					'name' => 'id',
 					'readonly' => true,
@@ -172,19 +166,25 @@ class AdminMetaDataController extends ModuleAdminController
 				),
 				array(
 					'type' => 'text',
-					'lang' => true,
-					'label' => $this->trans('Id object: - estaría bien que fuese un datalist de codecombination o pensar si meter aunque no haya codecombination', array(), 'Modules.cmsseo.Admin'),
+					// 'lang' => true,
+					'label' => $this->trans('Id object:', array(), 'Modules.cmsseo.Admin'),
 					'name' => 'id_object',
 					'required' => true,
 					'size' => 32
 				),
 				array(
-					'type' => 'text',
-					'lang' => true,
-					'label' => $this->trans('Object type: - meter datalist de id_object anterior o es tontería ?', array(), 'Modules.cmsseo.Admin'),
+					'type' => 'select',
+					// 'lang' => true,
+					'label' => $this->trans('Object type:', array(), 'Modules.cmsseo.Admin'),
 					'name' => 'object_type',
 					'required' => true,
-					'size' => 32
+					'hint' => $this->trans('Accepted values are: cms, product and category', array(), 'Modules.cmsseo.Admin'),
+					'desc' => $this->trans('Accepted values are: cms, product and category', array(), 'Modules.cmsseo.Admin'),
+					'options' => array(
+						'query' => $type_selector_options,  // $options contains the data itself.
+						'id' => 'id_option',         		// The value of the 'id' key must be the same as the key for 'value' attribute of the <option> tag in each $options sub-array.
+						'name' => 'name',             		// The value of the 'name' key must be the same as the key for the text content of the <option> tag in each $options sub-array.
+					),
 				),
 				array(
 					'type' => 'text',
@@ -232,8 +232,16 @@ class AdminMetaDataController extends ModuleAdminController
 		);
 		if (!($obj = $this->loadObject(true)))
 			return;
-		/* @todo: 
-		cargar valores aqui*/
+
+		$id = Tools::getValue('id');
+
+		if (!empty($id)) { // editing, not adding new meta
+			$meta = new CombinationSeoMetaData($id);
+			foreach (CombinationSeoMetaData::$definition['fields'] as $field){
+				$this -> fields_value = array($field => $meta -> $field);
+			}
+		}
+
 		return parent::renderForm();
 	}
 
@@ -250,8 +258,8 @@ class AdminMetaDataController extends ModuleAdminController
 			$metadata = new CombinationSeoMetaData($id, null, $shop);
 			$languages = Language::getLanguages(false);
 
-			$metadata -> id_object = array();
-			$metadata -> object_type = array();
+			$metadata -> id_object = 	Tools::getValue('id_object');
+			$metadata -> object_type = 	Tools::getValue('object_type');
 			$metadata -> meta_title = array();
 			$metadata -> meta_description = array();
 			$metadata -> meta_keywords = array();
@@ -260,21 +268,23 @@ class AdminMetaDataController extends ModuleAdminController
 			$default_lang = Configuration::get('PS_LANG_DEFAULT');
 			
 			foreach ($languages as $language){
-				$metadata -> id_object[$language['id_lang']] = Tools::getValue('id_object_'.$language['id_lang']);
-				$metadata -> object_type[$language['id_lang']] = Tools::getValue('object_type_'.$language['id_lang']);
+				// $metadata -> id_object[$language['id_lang']] = Tools::getValue('id_object_'.$language['id_lang']);
+				// $metadata -> object_type[$language['id_lang']] = Tools::getValue('object_type_'.$language['id_lang']);
 				$metadata -> meta_title[$language['id_lang']] = Tools::getValue('meta_title_'.$language['id_lang']);				
 				$metadata -> meta_description[$language['id_lang']] = Tools::getValue('meta_description_'.$language['id_lang']);
 				$metadata -> meta_keywords[$language['id_lang']] = Tools::getValue('meta_keywords_'.$language['id_lang']);
 				$metadata -> link_rewrite[$language['id_lang']] = Tools::getValue('link_rewrite_'.$language['id_lang']);
 
 				if ($default_lang == $language['id_lang']) {
-					if (empty ($metadata -> blockreference[$language['id_lang']]) ) {
+					/*
+					if (empty ($metadata -> id_object[$language['id_lang']]) ) {
 						$this->errors[] = Tools::displayError('An error has occurred: id_object couldn\'t be empty in the default language');
 					}
-					if (empty ($metadata -> subreference[$language['id_lang']]) ) {
+					if (empty ($metadata -> object_type[$language['id_lang']]) ) {
 						$this->errors[] = Tools::displayError('An error has occurred: object_type couldn\'t be empty in the default language');
 					}
-					if (empty ($metadata -> text[$language['id_lang']]) ) {
+					*/
+					if (empty ($metadata -> link_rewrite[$language['id_lang']]) ) {
 						$this->errors[] = Tools::displayError('An error has occurred: link_rewrite couldn\'t be empty in the default language');
 					}				
 				}

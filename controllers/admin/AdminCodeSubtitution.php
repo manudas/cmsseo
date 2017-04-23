@@ -142,7 +142,7 @@ class AdminCodeSubtitutionController extends ModuleAdminController
 			'input' => array(
 				array(
 					'type' => 'text',
-					'lang' => true,
+					// 'lang' => true,
 					'label' => $this->l('ID:'),
 					'name' => 'id',
 					//'required' => true,
@@ -167,7 +167,7 @@ class AdminCodeSubtitutionController extends ModuleAdminController
 				),
 				array(
 					'type' => 'text',
-					'lang' => true,
+					// 'lang' => true,
 					'label' => $this->l('Related block reference:'),
 					'name' => 'blockreference',
 					'required' => true,
@@ -191,9 +191,15 @@ class AdminCodeSubtitutionController extends ModuleAdminController
 		if (!($obj = $this->loadObject(true)))
 			return;
 		
-		// @todo: fill data in $this -> fields_value
+		$id = Tools::getValue('id');
 
-		$this -> fields_value = array('blockreference' => 'hacer');
+		if (!empty($id)) { // editing, not adding new meta
+			$subtitution = new CodeSubtitution($id);
+			foreach (CodeSubtitution::$definition['fields'] as $field){
+				$this -> fields_value = array($field => $subtitution -> $field);
+			}
+		}
+
 		return parent::renderForm();
 	}
 	public function postProcess()
@@ -205,48 +211,34 @@ class AdminCodeSubtitutionController extends ModuleAdminController
 			$shop = Tools::getValue('id_shop');
 			$id = Tools::getValue('id');
 
-			/*
-			'id' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => false),
-			'subreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'lang' => TRUE),
-			'blockreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'lang' => TRUE),
-			'id_cms' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'lang' => TRUE),
-			'order' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'lang' => TRUE)
-			*/
-			$code_combination = new CodeCombination($id, null, $shop);
+			$code_subtitution = new CodeSubtitution($id, null, $shop);
 			$languages = Language::getLanguages(false);
 
-			$code_combination->subreference = array();
-			$code_combination->blockreference = array();
-			$code_combination->id_cms = array();
-			$code_combination->order = array();
+			$code_subtitution -> subreference = 		Tools::getValue('subreference');
+			$code_subtitution -> blockreference = 		Tools::getValue('blockreference');
+			$code_subtitution -> search = array();
+			$code_subtitution -> replace = array();
 			
 			foreach ($languages as $language){
-				$code_combination->subreference[$language['id_lang']] = Tools::getValue('subreference_'.$language['id_lang']);
-				$code_combination->blockreference[$language['id_lang']] = Tools::getValue('blockreference_'.$language['id_lang']);
-				$code_combination->id_cms[$language['id_lang']] = Tools::getValue('id_cms_'.$language['id_lang']);
-				$code_combination->order[$language['id_lang']] = Tools::getValue('order_'.$language['id_lang']);
+			
+				$code_subtitution->search[$language['id_lang']] = Tools::getValue('search_'.$language['id_lang']);
+				$code_subtitution->replace[$language['id_lang']] = Tools::getValue('replace_'.$language['id_lang']);
 
 
 				if ($default_lang == $language['id_lang']) {
-					if (empty ($code_combination -> blockreference[$language['id_lang']]) ) {
-						$this->errors[] = Tools::displayError('An error has occurred: blockreference couldn\'t be empty in the default language');
-					}
-					if (empty ($code_combination -> subreference[$language['id_lang']]) ) {
-						$this->errors[] = Tools::displayError('An error has occurred: subreference couldn\'t be empty in the default language');
-					}
-					if (empty ($code_combination -> id_cms[$language['id_lang']]) ) {
-						$this->errors[] = Tools::displayError('An error has occurred: id_cms couldn\'t be empty in the default language');
+					
+					if (empty ($code_subtitution -> search[$language['id_lang']]) ) {
+						$this->errors[] = Tools::displayError('An error has occurred: search couldn\'t be empty in the default language');
 					}		
-					if (empty ($code_combination -> order[$language['id_lang']]) ) {
-						$this->errors[] = Tools::displayError('An error has occurred: order couldn\'t be empty in the default language');
+					if (empty ($code_subtitution -> replace[$language['id_lang']]) ) {
+						$this->errors[] = Tools::displayError('An error has occurred: replace couldn\'t be empty in the default language');
 					}		
 				}
-
 			}
 
 			if (empty($this->errors)) {	
 				// Save object
-				if (!$code_combination->save()) {
+				if (!$code_subtitution->save()) {
 					$this->errors[] = Tools::displayError('An error has occurred: Can\'t save the current object');
 				}
 				else {

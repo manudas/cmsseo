@@ -20,7 +20,7 @@ class CodeSubtitution extends ObjectModel
 			'id_shop' =>      		array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'shop' => true),
 			'search' =>   		   	array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true, 'lang' => TRUE),
 			'replace' =>    	  	array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true, 'lang' => TRUE),
-			'blockreference' =>     array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'lang' => TRUE),
+			'blockreference' =>     array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true),
 		),
 	);
 
@@ -48,9 +48,16 @@ class CodeSubtitution extends ObjectModel
 
 	public static function createContentTable()
 	{
-
+/*
 		$sql = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.self::$definition['table'].'`(
 			`id` int(10) unsigned NOT NULL auto_increment,
+			`id_shop` int(10) NOT NULL,
+			PRIMARY KEY (`id`)
+			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
+*/
+		$sql = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.self::$definition['table'].'`(
+			`id` int(10) unsigned NOT NULL auto_increment,
+			`blockreference` varchar(32) NOT NULL,
 			`id_shop` int(10) NOT NULL,
 			PRIMARY KEY (`id`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
@@ -65,10 +72,9 @@ class CodeSubtitution extends ObjectModel
 			`id` int(10) unsigned NOT NULL auto_increment,
 			`id_lang` int(10) NOT NULL,
 			`id_shop` int(10) NOT NULL,
-			`blockreference` varchar(32) NOT NULL,
 			`search` varchar(128) NOT NULL,
 			`replace` varchar(128) NOT NULL,
-			PRIMARY KEY (`id`, `id_lang`, `id_shop`), UNIQUE (`blockreference`, `search`, `replace`, `id_lang`, `id_shop`)
+			PRIMARY KEY (`id`, `id_lang`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
 
 		$result1 = Db::getInstance()->execute($sql);

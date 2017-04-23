@@ -29,7 +29,7 @@ class AdminCodeCombinatorController extends ModuleAdminController
 
 		// $this->module_name = 'combinationseo'; // se hace de forma automática
 
-		$this -> lang = true;
+		// $this -> lang = true;
 		parent::__construct();
 		// $this->deleted = false;
 		// $this->colorOnBackground = false;
@@ -148,18 +148,76 @@ class AdminCodeCombinatorController extends ModuleAdminController
 	}
 	*/
 
+	public function getBlockReferences () {
+
+		$module = Module::getInstanceByName('combinationseo');
+		
+		$extractFrontController = $module -> getModuleFrontControllerByName('CodeExtract');
+
+		$result = $extractFrontController -> getBlockReferencesArr();
+		
+		return $result;
+	}
+
+	public function getSubreferenceArrByBlockReference($blockReference){
+		$module = Module::getInstanceByName('combinationseo');
+		
+		$extractFrontController = $module -> getModuleFrontControllerByName('CodeExtract');
+
+		$result = $extractFrontController -> getSubreferenceArrByBlockReference($blockReference);
+		
+		return $result;
+	}
+
 	public function renderForm()
 	{
-		// die (Tools::toUnderscoreCase(substr($this->controller_name, 5)).'/');
-		$datalist_type_options = array();
-		$languages = Language::getLanguages(false);
-		foreach ($languages as $language) {
-			/* format of datalist options for multilanguage input:
-			 * $input.options[$language.id_lang]
-			 */
-			 $datalist_type_options[$language['id_lang']] = '<option value="cms" /><option value="product" /><option value="category" />';
+
+		$blockreferences = $this -> getBlockReferences();
+		
+		$options_blockreferences = array();
+		foreach ($blockreferences as $blockreference){
+			$options_blockreferences[] = array('id_option' => $blockreference, 'name' => $blockreference );
 		}
 
+		$id = Tools::getValue('id');
+		
+		if (!empty($id)) { // is being edited, not adding any new combination
+			$current_combination = new CodeCombination($id);
+			$selected_breference = $current_combination -> blockreference;
+			$selected_subreference = $current_combination -> subreference;
+		}
+		else {
+			if (!empty($blockreferences)){
+				$selected_breference = $blockreferences[0];
+			}
+		}
+
+		if (!empty ($selected_breference)) {
+			$subRefereceList = $this -> getSubreferenceArrByBlockReference($selected_breference);
+		}
+
+		if (empty($selected_subreference) && (!empty ($subRefereceList))){
+			$selected_subreference = $subRefereceList[0];
+		}
+
+		$options_subreferences = array();
+		foreach ($subRefereceList as $subreference){
+			$options_subreferences[] = array('id_option' => $subreference, 'name' => $subreference );
+		}
+
+		$type_selector_options = array (
+			array ('id_option' => 'cms', 'name' => 'cms'),
+			array ('id_option' => 'category', 'name' => 'category'),
+			array ('id_option' => 'product', 'name' => 'product')
+		);
+		if (!empty($id)) { // is being edited, not adding any new combination
+			$type_selected = $current_combination -> type;
+		}
+		else {
+			$type_selected = $type_selector_options[0]['id_option'];
+		}
+
+		
 		$this -> fields_form = array(
 			'tinymce' => true,
 			'legend' => array(
@@ -169,69 +227,67 @@ class AdminCodeCombinatorController extends ModuleAdminController
 			'input' => array(
 				array(
 					'type' => 'text',
-					'lang' => true,
+					// 'lang' => true,
 					'label' => $this->trans('ID:', array(), 'Modules.cmsseo.Admin'),
 					'name' => 'id',
 					'size' => 32,
 					'readonly' => true
 				),
 				array(
-					'type' => 'datalist',
-					'lang' => true,
+					'type' => 'select',
+					// 'lang' => true,
 					'label' => $this->trans('Block reference:', array(), 'Modules.cmsseo.Admin'),
 					'name' => 'blockreference',
 					'class' => 'blockreference',
-					'hint' => $this->trans('You must ensure that a reference exists with that name. Otherwise an error will be thrown', array(), 'Modules.cmsseo.Admin'),
-					'desc' => $this->trans('You must ensure that a reference exists with that name. Otherwise an error will be thrown', array(), 'Modules.cmsseo.Admin'),
+					'hint' => $this->trans('You will find here the references entered in Code Extracts', array(), 'Modules.cmsseo.Admin'),
+					'desc' => $this->trans('You will find here the references entered in Code Extracts', array(), 'Modules.cmsseo.Admin'),
 					'required' => true,
-					'size' => 32
+					'options' => array(
+									'query' => $options_blockreferences,
+									'id' => 'id_option', 
+									'name' => 'name'
+								),
 				),
 				array(
-					'type' => 'datalist',
-					/*
-					 aqui mas q select tal vez debería ser tipo datalist
-					y de paso adaptar js para que cargase los dato en el datalis y a fliaprrrrrrrrrrr
-
-					PD: pasar la opción option (u opciones si es multilenguage (mirar esquema del tpl))
-					*/
-					'lang' => true,
+					'type' => 'select',
 					'label' => $this->trans('Inner reference:', array(), 'Modules.cmsseo.Admin'),
 					'name' => 'subreference',
 					'required' => true,
 					'class' => 'subreference',
-					'hint' => $this->trans('You must ensure that a subreference exists with that name. Otherwise an error will be thrown', array(), 'Modules.cmsseo.Admin'),
-					'desc' => $this->trans('You must ensure that a subreference exists with that name. Otherwise an error will be thrown', array(), 'Modules.cmsseo.Admin'),
-					'size' => 32
+					'hint' => $this->trans('You will find here the subreferences entered in Code Extracts depending on the selected reference', array(), 'Modules.cmsseo.Admin'),
+					'desc' => $this->trans('You will find here the subreferences entered in Code Extracts depending on the selected reference', array(), 'Modules.cmsseo.Admin'),
+					'options' => array(
+									'query' => $options_subreferences,
+									'id' => 'id_option', 
+									'name' => 'name'
+								),
 				),
 				array(
 					'type' => 'text',
-					'lang' => true,
+					// 'lang' => true,
 					'label' => $this->trans('ID object:', array(), 'Modules.cmsseo.Admin'),
 					'name' => 'id_object',
 					'required' => true,
 					'size' => 32
 				),
 				array(
-					'type' => 'datalist',
-					'lang' => true,
+					'type' => 'select',
 					'label' => $this->trans('Type of page:', array(), 'Modules.cmsseo.Admin'),
 					'name' => 'type',
 					'required' => true,
 					'hint' => $this->trans('Accepted values are: cms, product and category', array(), 'Modules.cmsseo.Admin'),
 					'desc' => $this->trans('Accepted values are: cms, product and category', array(), 'Modules.cmsseo.Admin'),
-					'options' => $datalist_type_options,
-					/*
 					'options' => array(
-						'query' => CodeCombination::$_COMBINATION_TYPE_OPTIONS, // $options contains the data itself.
-						'id' => 'id_option',         							// The value of the 'id' key must be the same as the key for 'value' attribute of the <option> tag in each $options sub-array.
-						'name' => 'name',             							// The value of the 'name' key must be the same as the key for the text content of the <option> tag in each $options sub-array.
+						'query' => $type_selector_options,  // $options contains the data itself.
+						'id' => 'id_option',         		// The value of the 'id' key must be the same as the key for 'value' attribute of the <option> tag in each $options sub-array.
+						'name' => 'name',             		// The value of the 'name' key must be the same as the key for the text content of the <option> tag in each $options sub-array.
 					),
-					*/
+					
 					
 				),
 				array(
 					'type' => 'text',
-					'lang' => true,
+					// 'lang' => true,
 					'label' => $this->trans('Position:', array(), 'Modules.cmsseo.Admin'),
 					'name' => 'order',
 					'required' => true,
@@ -257,9 +313,11 @@ class AdminCodeCombinatorController extends ModuleAdminController
 		if (!($obj = $this->loadObject(true)))
 			return;
 		
-		// @todo: fill data in $this -> fields_value
-
-		$this -> fields_value = array('blockreference' => 'hacer');
+		if (!empty($id)) {
+			foreach (CodeCombination::$definition['fields'] as $field){
+				$this -> fields_value = array($field => $current_combination -> $field);
+			}
+		}
 		return parent::renderForm();
 	}
 
@@ -268,26 +326,36 @@ class AdminCodeCombinatorController extends ModuleAdminController
 		
 		$options = "";
 
-		if ((Tools::isSubmit('blockreference')) && (Tools::isSubmit('subreference'))) 
+		if ((Tools::isSubmit('blockreference')) /*&& (Tools::isSubmit('subreference'))*/) 
 		{
 			$blockreference = Tools::getValue('blockreference');
-			$subreference = Tools::getValue('subreference');
-			$language_id = Tools::getValue('language');
+			// $subreference = Tools::getValue('subreference');
+			// $language_id = Tools::getValue('language');
 
+			if (!empty($blockreference)) {
+				$code_extract_collection = new PrestashopCollection('CodeExtract', null);
+				// $code_extract_collection = new PrestashopCollection('CodeExtract', $language_id);
 
-			$code_extract_collection = new PrestashopCollection('CodeExtract', $language_id);
-			$code_extract_collection -> sqlWhere ('LOWER(blockreference) = "'. strtolower($blockreference). '" AND LOWER(subreference) like "%'. strtolower($subreference). '%" AND id_lang = '.$language_id);
+				// $code_extract_collection -> where('blockreference', 'regexp', $blockreference);
+				$code_extract_collection -> where('blockreference', '=', $blockreference);
 
+				/*
+				if (!empty($subreference)) {
+					$code_extract_collection -> where('subreference', 'regexp', $subreference);
+				//$code_extract_collection -> sqlWhere ('LOWER(blockreference) = "'. strtolower(blockreference). '" AND LOWER(subreference) like "%'. strtolower($subreference). '%" AND id_lang = '.$language_id);
+				}
+				*/
+			}
 				
 			foreach ($code_extract_collection as $extract) {
-				$options .= "<option value='{$extract -> subreference}' />";
+				$options .= "<option value='{$extract -> subreference}' >{$extract -> subreference}</option>";
 			}
 		}
 		echo $options;
 		die;
 	}
 
-
+/*
 	public function ajaxProcessGetReferencesOptions() {
 		
 		$options = "";
@@ -296,10 +364,17 @@ class AdminCodeCombinatorController extends ModuleAdminController
 		{
 			$blockreference = Tools::getValue('blockreference');
 
-			$language_id = Tools::getValue('language');
+			// $language_id = Tools::getValue('language');
+			// $code_extract_collection = new PrestashopCollection('CodeExtract', $language_id);
 
-			$code_extract_collection = new PrestashopCollection('CodeExtract', $language_id);
-			$code_extract_collection -> sqlWhere ('LOWER(blockreference) like "%'. strtolower($blockreference). '%" AND id_lang = '.$language_id);
+			$code_extract_collection = new PrestashopCollection('CodeExtract', null);
+			// $code_extract_collection -> join ('codeextract_lang', 'id_lang');
+			if (!empty($blockreference)){
+				$code_extract_collection -> where('blockreference', 'regexp', $blockreference);
+			}
+			//$code_extract_collection -> where('subreference', 'regexp', $subreference);
+			
+			//$code_extract_collection -> sqlWhere ('LOWER(blockreference) like "%'. strtolower($blockreference). '%" AND id_lang = '.$language_id);
 
 				
 			foreach ($code_extract_collection as $extract) {
@@ -309,7 +384,7 @@ class AdminCodeCombinatorController extends ModuleAdminController
 		echo $options;
 		die;
 	}
-
+*/
 	public function setMedia()
 	{
 		parent::setMedia();
@@ -318,12 +393,13 @@ class AdminCodeCombinatorController extends ModuleAdminController
 
 	}
 
+
 	public function display() {
 		if (!$this->ajax) {
 			$script_url_combinator = "<script> url_code_combinator = '" . $this->context->link->getAdminLink('Admin'.$this->name, true) . "' </script>";
 			echo $script_url_combinator;
 		}
-		return parent::display();
+		parent::display(); // returns void, so no need to return anything
 	}
 
 
@@ -344,13 +420,14 @@ class AdminCodeCombinatorController extends ModuleAdminController
 			'order' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'lang' => TRUE)
 			*/
 			$code_combination = new CodeCombination($id, null, $shop);
-			$languages = Language::getLanguages(false);
+			// $languages = Language::getLanguages(false);
 
-			$code_combination->subreference = array();
-			$code_combination->blockreference = array();
-			$code_combination->id_cms = array();
-			$code_combination->order = array();
-			
+			$code_combination -> subreference = 	Tools::getValue('subreference');
+			$code_combination -> blockreference = 	Tools::getValue('blockreference');
+			$code_combination -> id_object = 		Tools::getValue('id_object');
+			$code_combination -> order = 			Tools::getValue('order');
+			$code_combination -> type = 			Tools::getValue('type');
+/*
 			foreach ($languages as $language){
 				$code_combination -> subreference[$language['id_lang']] = Tools::getValue('subreference_'.$language['id_lang']);
 				$code_combination -> blockreference[$language['id_lang']] = Tools::getValue('blockreference_'.$language['id_lang']);
@@ -378,18 +455,19 @@ class AdminCodeCombinatorController extends ModuleAdminController
 				}
 
 			}
-
-			if (empty($this->errors)) {	
+*/
+			//if (empty($this->errors)) {	
 				// Save object
-				if (!$code_combination->save()) {
-					$this->errors[] = Tools::displayError('An error has occurred: Can\'t save the current object');
-				}
-				else {
-					Tools::redirectAdmin(self::$currentIndex.'&conf=4&token='.$this -> token);
-				}
+			if (!$code_combination->save()) {
+				$this->errors[] = Tools::displayError('An error has occurred: Can\'t save the current object');
 			}
+			else {
+				Tools::redirectAdmin(self::$currentIndex.'&conf=4&token='.$this -> token);
+			}
+			//}
 		}
 
 		parent::postProcess();
 	}
+
 }

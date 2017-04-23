@@ -36,23 +36,45 @@ class CombinationSeoCodeExtractModuleFrontController extends ModuleFrontControll
     }
 
     
-    public function getCodeExtractCollection ($blockreference, $id_lang, $subreferenceList = null) {
+    public function getCodeExtractCollection ($blockreference, $id_lang, $id_shop, $subreferenceList = null) {
 		
 		if (empty($blockreference)) {
             throw new PrestaShopException($this -> name .":: getCodeExtractCollection:: Can't get set width an empty blockreference");
         }
 
+
+		if (empty($id_shop)) {
+            $id_shop = Context::getContext()->shop->id;
+        }
+        /*
+        // if (!empty($id_shop)) {
+			$shop_where = '" AND id_shop = "' . $id_shop . '"';
+		//}
+		//else {
+		//	$shop_where = '';
+		//}
+*/
+
 		$codeExtractCollection = new PrestashopCollection('CodeExtract', $id_lang);
-		
+
+
+        $codeExtractCollection -> where ('blockreference', '=', $blockreference);
+
+        $codeExtractCollection -> where ('id_shop', '=', $id_shop);
+
+        if (!empty($subreferenceList)) {
+            $codeExtractCollection -> where ('subreference', 'in', $subreferenceList);
+        }
+        /*
 		$subreferenceString = "";
         if (!empty($subreferenceList)) {
             $subreferenceString = ' AND subreference IN ("'.implode('","',$subreferenceList).'")';
         }
 
-		$whereString = 'blockreference = "' . $blockreference . '"' . $subreferenceString;
+		$whereString = 'blockreference = "' . $blockreference . '"' . $subreferenceString . $shop_where;
 
 		$codeExtractCollection -> sqlWhere ($whereString);
-
+*/
 //$codeExtractCollection -> getAll(true);
 
 		$result = array();
@@ -67,5 +89,36 @@ class CombinationSeoCodeExtractModuleFrontController extends ModuleFrontControll
 		return $result;
 
 	}
+
+    public function getBlockReferencesArr() {
+        $combinationCollection = new PrestashopCollection('CodeExtract');
+        $result = array();
+        if (count($combinationCollection) > 0 ){
+            foreach ($combinationCollection as $combination) { 
+                $result[] = $combination -> blockreference;
+            }
+        }
+        return $result;
+    }
+
+    public function getSubreferenceArrByBlockReference($blockReference) {
+        if (empty($blockReference)) {
+            throw new PrestaShopException($this -> name .":: getSubreferencesByBlockReference:: Can't get set width an empty blockReference");
+        }
+
+        $combinationCollection = new PrestashopCollection('CodeExtract');
+        
+        $combinationCollection -> where ('blockreference', '=', $blockReference);
+
+        $result = array();
+        
+        if (count($combinationCollection) > 0 ){
+            foreach ($combinationCollection as $combination) { 
+                $result[] = $combination -> subreference;
+            }
+        }
+        
+        return $result;
+    }
 
 }

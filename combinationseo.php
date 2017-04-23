@@ -15,6 +15,7 @@
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 */
 
+
 if (!defined( '_PS_VERSION_' ))
 	exit;
 
@@ -32,7 +33,7 @@ class combinationseo extends Module
         require_once (_PS_MODULE_DIR_.$this->name.'/models/combinationseometadata.php');
 
         $this->author = 'Manuel José Pulgar Anguita';
-        $this->version = '0.2';
+        $this->version = '0.3';
 
         $this->bootstrap = true;
         parent::__construct();
@@ -47,13 +48,29 @@ class combinationseo extends Module
 
     public function install()
     {
-        return $this->installDB()
-            && $this->installTabs()
+        return $this -> installDB()
+            && $this -> installTabs()
+            && $this -> installConfiguration()
             && parent::install()
         ;
     }
 
+    private function deleteConfiguration() {
+
+        Configuration::deleteByName( 'COMBINATIONSEO_CONCATENATE_RESULT' );
+        Configuration::deleteByName( 'COMBINATIONSEO_DROP_DATABASE' );
+        return true;
+    }
+
+    private function installConfiguration() {
+
+        Configuration::updateValue( 'COMBINATIONSEO_CONCATENATE_RESULT' , 'false' );
+        Configuration::updateValue( 'COMBINATIONSEO_DROP_DATABASE' , 'false' );
+        return true;
+    }
+
     private function installTabs() {
+        
         $sectionTab = $this -> createSection($this -> name);
 
         $desplegableTab = $this -> installTab('AdminCodeCombinator', $this->trans('Combination SEO Module', array(), 'Modules.combinationseo.Admin') , $this -> name);
@@ -64,8 +81,10 @@ class combinationseo extends Module
         $tab2 = $this -> installTab('AdminCodeExtract', $this->trans('Extractos de código', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
         $tab3 = $this -> installTab('AdminCodeSubtitution', $this->trans('Sustituciones en código', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
         $tab4 = $this -> installTab('AdminMetaData', $this->trans('Meta Data for objects', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
+        $tab5 = $this -> installTab('AdminBackup', $this->trans('Import or export data for SEO', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
         
-        return $sectionTab && $desplegableTab && $tab && $tab2 && $tab3 && $tab4;
+        return $sectionTab && $desplegableTab && $tab && $tab2 && $tab3 && $tab4 && $tab5;
+    
     }
 
     private function createSection($tab_section_name) {
@@ -128,8 +147,9 @@ class combinationseo extends Module
         $return1 = CodeExtract::createTables();
         $return2 = CodeCombination::createTables();
         $return3 = CodeSubtitution::createTables();
+        $return4 = CombinationSeoMetaData::createTables();
 
-        $return = $return1 && $return2 && $return3;
+        $return = $return1 && $return2 && $return3 && $return4;
 
         return $return;
     }
@@ -151,17 +171,24 @@ class combinationseo extends Module
         // return parent::uninstall();
         return $this -> uninstallTabs() 
             && $this -> uninstallDB() 
+            && $this -> deleteConfiguration() // afecta a uninstallDB, lo ejecutamos después
             && parent::uninstall();
     }
 
     public function uninstallDB()
     {
-        $return1 = CodeExtract::dropTables();
-        $return2 = CodeCombination::dropTables();
-        $return3 = CodeSubtitution::dropTables();
+        $dropDB = Configuration::get( 'COMBINATIONSEO_DROP_DATABASE' );
+        if ($dropDB == 'true') {
+            $return1 = CodeExtract::dropTables();
+            $return2 = CodeCombination::dropTables();
+            $return3 = CodeSubtitution::dropTables();
+            $return4 = CombinationSeoMetaData::dropTables();
 
-        $return = $return1 && $return2 && $return3;
-
+            $return = $return1 && $return2 && $return3 && $return4;
+        }
+        else {
+            $return = true;
+        }
         return $return;
     }
 
@@ -169,121 +196,84 @@ class combinationseo extends Module
     public function getContent()
     {
         $html = '';
-        $id_reassurance = (int)Tools::getValue('id_reassurance');
 
-        if (Tools::isSubmit('savecombinationseo')) {
-            if ($id_reassurance = Tools::getValue('id_reassurance')) {
-                $reassurance = new reassuranceClass((int)$id_reassurance);
-            } else {
-                $reassurance = new reassuranceClass();
-            }
+        if (Tools::isSubmit('submitAdd'.$this -> name)) {
+            $drop_tables_on_delete = Tools::getValue('deletedb');
+            $drop_tables_on_delete_config_value = ($drop_tables_on_delete == '1' ? 'true':'false');
+            
+            $concatenate_module_content = Tools::getValue('concatenate');
+            $concatenate_module_content_config_value = ($concatenate_module_content == '1' ? 'true':'false');
+            
+            
+            Configuration::updateValue( 'COMBINATIONSEO_CONCATENATE_RESULT' , $concatenate_module_content_config_value );
+            Configuration::updateValue( 'COMBINATIONSEO_DROP_DATABASE' , $drop_tables_on_delete_config_value );
 
-            $reassurance->copyFromPost();
-            $reassurance->id_shop = $this->context->shop->id;
-
-            if ($reassurance->validateFields(false) && $reassurance->validateFieldsLang(false)) {
-                $reassurance->save();
-
-                if (isset($_FILES['image']) && isset($_FILES['image']['tmp_name']) && !empty($_FILES['image']['tmp_name'])) {
-                    if ($error = ImageManager::validateUpload($_FILES['image'])) {
-                        return false;
-                    } elseif (!($tmpName = tempnam(_PS_TMP_IMG_DIR_, 'PS')) || !move_uploaded_file($_FILES['image']['tmp_name'], $tmpName)) {
-                        return false;
-                    } elseif (!ImageManager::resize($tmpName, dirname(__FILE__).'/img/reassurance-'.(int)$reassurance->id.'-'.(int)$reassurance->id_shop.'.jpg')) {
-                        return false;
-                    }
-
-                    unlink($tmpName);
-                    $reassurance->file_name = 'reassurance-'.(int)$reassurance->id.'-'.(int)$reassurance->id_shop.'.jpg';
-                    $reassurance->save();
-                }
-                $this->_clearCache('*');
-            } else {
-                $html .= '<div class="conf error">'.$this->trans('An error occurred while attempting to save.', array(), 'Admin.Notifications.Error').'</div>';
-            }
+            $html .= $this->displayConfirmation($this->trans('Settings updated', array(), 'Modules.combinationseo.Admin'));
         }
 
-        if (Tools::isSubmit('updatecombinationseo') || Tools::isSubmit('addcombinationseo')) {
-            $helper = $this->initForm();
-            foreach (Language::getLanguages(false) as $lang) {
-                if ($id_reassurance) {
-                    $reassurance = new reassuranceClass((int)$id_reassurance);
-                    $helper->fields_value['text'][(int)$lang['id_lang']] = $reassurance->text[(int)$lang['id_lang']];
-                    $image = dirname(__FILE__).DIRECTORY_SEPARATOR.'img'.DIRECTORY_SEPARATOR.$reassurance->file_name;
-                    $this->fields_form[0]['form']['input'][0]['image'] = '<img src="'.$this->getImageURL($reassurance->file_name).'" />';
-                } else {
-                    $helper->fields_value['text'][(int)$lang['id_lang']] = Tools::getValue('text_'.(int)$lang['id_lang'], '');
-                }
-            }
-            if ($id_reassurance = Tools::getValue('id_reassurance')) {
-                $this->fields_form[0]['form']['input'][] = array('type' => 'hidden', 'name' => 'id_reassurance');
-                $helper->fields_value['id_reassurance'] = (int)$id_reassurance;
-            }
+        $helper = $this->initForm();
 
-            return $html.$helper->generateForm($this->fields_form);
-        } elseif (Tools::isSubmit('deletecombinationseo')) {
-            $reassurance = new reassuranceClass((int)$id_reassurance);
-            if (file_exists(dirname(__FILE__).'/img/'.$reassurance->file_name)) {
-                unlink(dirname(__FILE__).'/img/'.$reassurance->file_name);
-            }
-            $reassurance->delete();
-            $this->_clearCache('*');
-            Tools::redirectAdmin(AdminController::$currentIndex.'&configure='.$this->name.'&token='.Tools::getAdminTokenLite('AdminModules'));
-        } else {
-            $content = $this->getListContent((int)Configuration::get('PS_LANG_DEFAULT'));
-            $helper = $this->initList();
-            $helper->listTotal = count($content);
-            return $html.$helper->generateList($content, $this->fields_list);
-        }
+        $dropDB = Configuration::get( 'COMBINATIONSEO_DROP_DATABASE' );
+        $concatenate = Configuration::get( 'COMBINATIONSEO_CONCATENATE_RESULT' );
 
-        if (isset($_POST['submitModule'])) {
-            Configuration::updateValue('combinationseo_NBBLOCKS', ((isset($_POST['nbblocks']) && $_POST['nbblocks'] != '') ? (int)$_POST['nbblocks'] : ''));
-            if ($this->removeFromDB() && $this->addToDB()) {
-                $this->_clearCache('combinationseo.tpl');
-                $output = '<div class="conf confirm">'.$this->trans('The block configuration has been updated.', array(), 'Modules.combinationseo.Admin').'</div>';
-            } else {
-                $output = '<div class="conf error"><img src="../img/admin/disabled.gif"/>'.$this->trans('An error occurred while attempting to save.', array(), 'Admin.Notifications.Error').'</div>';
-            }
-        }
-    }
+        $helper -> fields_value['concatenate'] = ($concatenate == "true" ? true : false);
+        $helper -> fields_value['deletedb'] = ($dropDB == "true" ? true : false);
 
-    protected function getListContent($id_lang)
-    {
-        return  Db::getInstance()->executeS('
-            SELECT r.`id_reassurance`, r.`id_shop`, r.`file_name`, rl.`text`
-            FROM `'._DB_PREFIX_.'reassurance` r
-            LEFT JOIN `'._DB_PREFIX_.'reassurance_lang` rl ON (r.`id_reassurance` = rl.`id_reassurance`)
-            WHERE `id_lang` = '.(int)$id_lang.' '.Shop::addSqlRestrictionOnLang());
+        $html = $html.$helper->generateForm($this->fields_form);
+
+        return $html;
     }
 
     protected function initForm()
     {
-        $default_lang = (int)Configuration::get('PS_LANG_DEFAULT');
 
         $this->fields_form[0]['form'] = array(
             'legend' => array(
-                'title' => $this->trans('New reassurance block', array(), 'Modules.combinationseo.Admin'),
+                'title' => $this->trans('Basic Combination SEO Module configuration', array(), 'Modules.combinationseo.Admin'),
             ),
             'input' => array(
                 array(
-                    'type' => 'file',
-                    'label' => $this->trans('Image', array(), 'Admin.Global'),
-                    'name' => 'image',
-                    'value' => true,
-                    'display_image' => true,
+                    'type' => 'radio',
+                    'label' => $this->trans('Concatenate result', array(), 'Modules.combinationseo.Admin'),
+                    'name' => 'concatenate',
+                    'is_bool'   => true,
+                    'values'    => array(       // $values contains the data itself.
+                                        array(
+                                            'id'    => 'concatenate_on',      // The content of the 'id' attribute of the <input> tag, and of the 'for' attribute for the <label> tag.
+                                            'value' => 1,                     // The content of the 'value' attribute of the <input> tag.   
+                                            'label' => $this->trans('Enabled', array(), 'Modules.combinationseo.Admin'), // The <label> for this radio button.
+                                        ),
+                                        array(
+                                            'id'    => 'concatenate_off',
+                                            'value' => 0,
+                                            'label' => $this->trans('Disabled', array(), 'Modules.combinationseo.Admin'),
+                                        )
+                                   ),
                 ),
                 array(
-                    'type' => 'textarea',
-                    'label' => $this->trans('Text', array(), 'Admin.Global'),
-                    'lang' => true,
-                    'name' => 'text',
-                    'cols' => 40,
-                    'rows' => 10
-                )
+                    'type' => 'radio',
+                    'label' => $this->trans('Drop database on uninstall', array(), 'Modules.combinationseo.Admin'),
+                    'name' => 'deletedb',
+                    'is_bool'   => true,
+                    'values'    => array(       // $values contains the data itself.
+                                        array(
+                                            'id'    => 'deletedb_on',      // The content of the 'id' attribute of the <input> tag, and of the 'for' attribute for the <label> tag.
+                                            'value' => 1,                     // The content of the 'value' attribute of the <input> tag.   
+                                            'label' => $this->trans('Enabled', array(), 'Modules.combinationseo.Admin'), // The <label> for this radio button.
+                                        ),
+                                        array(
+                                            'id'    => 'deletedb_off',
+                                            'value' => 0,
+                                            'label' => $this->trans('Disabled', array(), 'Modules.combinationseo.Admin'),
+                                        )
+                                   ),
+                ),
             ),
-            'submit' => array(
-                'title' => $this->trans('Save', array(), 'Admin.Actions'),
-            )
+            
+			'submit' => array(
+				'title' => $this->trans('Save', array(), 'Modules.combinationseo.Admin'),
+				// 'class' => 'button'
+			)
         );
 
         $helper = new HelperForm();
@@ -291,96 +281,20 @@ class combinationseo extends Module
         $helper->name_controller = 'combinationseo';
         $helper->identifier = $this->identifier;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
-        foreach (Language::getLanguages(false) as $lang) {
-            $helper->languages[] = array(
-                'id_lang' => $lang['id_lang'],
-                'iso_code' => $lang['iso_code'],
-                'name' => $lang['name'],
-                'is_default' => ($default_lang == $lang['id_lang'] ? 1 : 0)
-            );
-        }
 
         $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
-        $helper->default_form_language = $default_lang;
-        $helper->allow_employee_form_lang = $default_lang;
-        $helper->toolbar_scroll = true;
+
         $helper->title = $this->displayName;
-        $helper->submit_action = 'savecombinationseo';
-        $helper->toolbar_btn =  array(
-            'save' =>
-            array(
-                'desc' => $this->trans('Save', array(), 'Admin.Actions'),
-                'href' => AdminController::$currentIndex.'&configure='.$this->name.'&save'.$this->name.'&token='.Tools::getAdminTokenLite('AdminModules'),
-            ),
-            'back' =>
-            array(
-                'href' => AdminController::$currentIndex.'&configure='.$this->name.'&token='.Tools::getAdminTokenLite('AdminModules'),
-                'desc' => $this->trans('Back to list', array(), 'Admin.Actions'),
-            )
-        );
+        $helper->submit_action = 'submitAdd' . $this -> name;
+     
         return $helper;
     }
 
-    protected function initList()
-    {
-        $this->fields_list = array(
-            'id_reassurance' => array(
-                'title' => $this->trans('ID', array(), 'Admin.Global'),
-                'width' => 120,
-                'type' => 'text',
-                'search' => false,
-                'orderby' => false
-            ),
-            'text' => array(
-                'title' => $this->trans('Text', array(), 'Admin.Global'),
-                'width' => 140,
-                'type' => 'text',
-                'search' => false,
-                'orderby' => false
-            ),
-        );
-
-        if (Shop::isFeatureActive()) {
-            $this->fields_list['id_shop'] = array(
-                'title' => $this->trans('ID Shop', array(), 'Modules.combinationseo.Admin'),
-                'align' => 'center',
-                'width' => 25,
-                'type' => 'int'
-            );
-        }
-
-        $helper = new HelperList();
-        $helper->shopLinkType = '';
-        $helper->simple_header = false;
-        $helper->identifier = 'id_reassurance';
-        $helper->actions = array('edit', 'delete');
-        $helper->show_toolbar = true;
-        $helper->imageType = 'jpg';
-        $helper->toolbar_btn['new'] =  array(
-            'href' => AdminController::$currentIndex.'&configure='.$this->name.'&add'.$this->name.'&token='.Tools::getAdminTokenLite('AdminModules'),
-            'desc' => $this->trans('Add new', array(), 'Admin.Actions')
-        );
-
-        $helper->title = $this->displayName;
-        $helper->table = $this->name;
-        $helper->token = Tools::getAdminTokenLite('AdminModules');
-        $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
-        return $helper;
-    }
 
     protected function _clearCache($template, $cacheId = null, $compileId = null)
     {
         parent::_clearCache($this->templateFile);
     }
-
-    
-
-/*
-    private function getImageURL($image)
-    {
-        return $this->context->link->getMediaLink(__PS_BASE_URI__.'modules/'.$this->name.'/img/'.$image);
-    }
-    */
 
     public function getModuleAdminControllerByName($name) {
         if (empty($name)) {
