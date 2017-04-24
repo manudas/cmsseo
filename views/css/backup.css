@@ -1,0 +1,15 @@
+#tablebackup {
+    width: 80%;
+    border-spacing: 15px;
+    border-collapse: separate;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+#tablebackup tr td:first-child {
+   text-align: left;
+}
+
+#tablebackup tr td:last-child {
+   text-align: right!important;
+}

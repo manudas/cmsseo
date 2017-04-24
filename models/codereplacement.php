@@ -1,6 +1,6 @@
 <?php
 
-class CodeSubtitution extends ObjectModel
+class CodeReplacement extends ObjectModel
 {
 	public $id;
 	// public $subreference;
@@ -10,7 +10,7 @@ class CodeSubtitution extends ObjectModel
 	public $id_shop;
 
 	public static $definition = array(
-		'table' => 'codesubtitutions',
+		'table' => 'codeReplacements',
 		'primary' => 'id',
 		// 'multishop' => true,
 		'multilang' => true,

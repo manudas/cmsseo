@@ -102,4 +102,13 @@ $data = $this->context->smarty->createTemplate($tpl_path, $this->context->smarty
 		}
 	}
 
+
+	public function setMedia()
+	{
+		parent::setMedia();
+		
+		$this -> addCSS(_MODULE_DIR_.$this->module->name.'/views/css/backup.css');
+
+	}
+
 }

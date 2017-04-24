@@ -17,7 +17,7 @@
 /**
  * @since 1.7.0
  */
-class CombinationSeoCodeSubtitutionModuleFrontController extends ModuleFrontController
+class CombinationSeoCodeReplacementModuleFrontController extends ModuleFrontController
 {
     
     public function __construct()
@@ -79,9 +79,9 @@ class CombinationSeoCodeSubtitutionModuleFrontController extends ModuleFrontCont
         return $result_string;
     }
 
-	public function getSubtitutions($blockReference, $id_lang, $id_shop){
+	public function getReplacements($blockReference, $id_lang, $id_shop){
 		if (empty($blockReference)) {
-            throw new PrestaShopException($this -> name .":: getSubtitutionCollection:: Can't get subtitutions width an empty blockReference");
+            throw new PrestaShopException($this -> name .":: getReplacementCollection:: Can't get Replacements width an empty blockReference");
         }
 
 /*
@@ -96,22 +96,22 @@ class CombinationSeoCodeSubtitutionModuleFrontController extends ModuleFrontCont
         if (empty($id_shop)) {
             $id_shop = Context::getContext()->shop->id;
         }
-		$subtitutionCollection = new PrestashopCollection('CodeSubtitution', $id_lang);
+		$ReplacementCollection = new PrestashopCollection('CodeReplacement', $id_lang);
         //$sqlWhere = 'blockreference = "' . $blockReference . '"' . $shop_where; 
-        // $subtitutionCollection -> sqlWhere($sqlWhere);
+        // $ReplacementCollection -> sqlWhere($sqlWhere);
 
-        $subtitutionCollection -> where ('blockreference', '=', $blockReference);
+        $ReplacementCollection -> where ('blockreference', '=', $blockReference);
 
-        $subtitutionCollection -> where ('id_shop', '=', $id_shop);
+        $ReplacementCollection -> where ('id_shop', '=', $id_shop);
 
 		$searchArr = array();
         $replaceArr = array();
 
-        if (!empty($subtitutionCollection[0])) {
+        if (!empty($ReplacementCollection[0])) {
             $i = 0;
-            foreach ($subtitutionCollection as $subtitution) {
-                $searchArr[$i] = $subtitution -> search;
-                $replaceArr[$i] = $subtitution -> replace;
+            foreach ($ReplacementCollection as $Replacement) {
+                $searchArr[$i] = $Replacement -> search;
+                $replaceArr[$i] = $Replacement -> replace;
                 $i ++;
             }
         }
@@ -148,7 +148,7 @@ class CombinationSeoCodeSubtitutionModuleFrontController extends ModuleFrontCont
 		//}
 */
 
-		$subtitutions = $this -> getSubtitutions($blockReference, $id_lang, $id_shop);
+		$Replacements = $this -> getReplacements($blockReference, $id_lang, $id_shop);
 
 
         $extractCollection = new PrestashopCollection('CodeExtract', $id_lang);
@@ -167,8 +167,8 @@ class CombinationSeoCodeSubtitutionModuleFrontController extends ModuleFrontCont
         $where_extract = 'blockreference = '. $blockreference . $subreferenceString . $shop_where;
         $extractCollection -> sqlWhere ($where_extract);
 */
-		$searchArr = $subtitutions['search'];
-		$replaceArr = $subtitutions['replace'];
+		$searchArr = $Replacements['search'];
+		$replaceArr = $Replacements['replace'];
 
         $subtitutedExtractArr = array();
         if (!empty($extractCollection)) {

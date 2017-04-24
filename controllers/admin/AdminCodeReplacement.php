@@ -14,18 +14,18 @@
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 */
 
-class AdminCodeSubtitutionController extends ModuleAdminController
+class AdminCodeReplacementController extends ModuleAdminController
 {
 	public function __construct()
 	{
-		$this -> table = 'codesubtitutions';
+		$this -> table = 'codeReplacements';
 		$this -> identifier = 'id'; // identifier in the table where the data is stored (for renderList method)
 
 		$this -> bootstrap = true;
-		$this -> className = 'CodeSubtitution'; // associated objectcontroller
+		$this -> className = 'CodeReplacement'; // associated objectcontroller
 
 		$this -> show_form_cancel_button = false; // don't show default cancel button in renderForm
-		$this -> name = 'CodeSubtitution';
+		$this -> name = 'CodeReplacement';
 
 		$this -> lang = true;
 		parent::__construct();
@@ -194,9 +194,9 @@ class AdminCodeSubtitutionController extends ModuleAdminController
 		$id = Tools::getValue('id');
 
 		if (!empty($id)) { // editing, not adding new meta
-			$subtitution = new CodeSubtitution($id);
-			foreach (CodeSubtitution::$definition['fields'] as $field){
-				$this -> fields_value = array($field => $subtitution -> $field);
+			$Replacement = new CodeReplacement($id);
+			foreach (CodeReplacement::$definition['fields'] as $field){
+				$this -> fields_value = array($field => $Replacement -> $field);
 			}
 		}
 
@@ -211,26 +211,26 @@ class AdminCodeSubtitutionController extends ModuleAdminController
 			$shop = Tools::getValue('id_shop');
 			$id = Tools::getValue('id');
 
-			$code_subtitution = new CodeSubtitution($id, null, $shop);
+			$code_Replacement = new CodeReplacement($id, null, $shop);
 			$languages = Language::getLanguages(false);
 
-			$code_subtitution -> subreference = 		Tools::getValue('subreference');
-			$code_subtitution -> blockreference = 		Tools::getValue('blockreference');
-			$code_subtitution -> search = array();
-			$code_subtitution -> replace = array();
+			$code_Replacement -> subreference = 		Tools::getValue('subreference');
+			$code_Replacement -> blockreference = 		Tools::getValue('blockreference');
+			$code_Replacement -> search = array();
+			$code_Replacement -> replace = array();
 			
 			foreach ($languages as $language){
 			
-				$code_subtitution->search[$language['id_lang']] = Tools::getValue('search_'.$language['id_lang']);
-				$code_subtitution->replace[$language['id_lang']] = Tools::getValue('replace_'.$language['id_lang']);
+				$code_Replacement->search[$language['id_lang']] = Tools::getValue('search_'.$language['id_lang']);
+				$code_Replacement->replace[$language['id_lang']] = Tools::getValue('replace_'.$language['id_lang']);
 
 
 				if ($default_lang == $language['id_lang']) {
 					
-					if (empty ($code_subtitution -> search[$language['id_lang']]) ) {
+					if (empty ($code_Replacement -> search[$language['id_lang']]) ) {
 						$this->errors[] = Tools::displayError('An error has occurred: search couldn\'t be empty in the default language');
 					}		
-					if (empty ($code_subtitution -> replace[$language['id_lang']]) ) {
+					if (empty ($code_Replacement -> replace[$language['id_lang']]) ) {
 						$this->errors[] = Tools::displayError('An error has occurred: replace couldn\'t be empty in the default language');
 					}		
 				}
@@ -238,7 +238,7 @@ class AdminCodeSubtitutionController extends ModuleAdminController
 
 			if (empty($this->errors)) {	
 				// Save object
-				if (!$code_subtitution->save()) {
+				if (!$code_Replacement->save()) {
 					$this->errors[] = Tools::displayError('An error has occurred: Can\'t save the current object');
 				}
 				else {

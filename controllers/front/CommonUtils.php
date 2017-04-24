@@ -68,7 +68,7 @@ class CombinationSeoCommonUtilsModuleFrontController extends ModuleFrontControll
 		
         $codeExtractFrontController = $combinationseo_module -> getModuleFrontControllerByName('CodeExtract');
 
-		$codeSubtitutionFrontController = $combinationseo_module -> getModuleFrontControllerByName('CodeSubtitution');
+		$codeReplacementFrontController = $combinationseo_module -> getModuleFrontControllerByName('CodeReplacement');
 
         $codeCombinator = $combinationseo_module -> getModuleFrontControllerByName('CodeCombinator');
 
@@ -97,9 +97,9 @@ class CombinationSeoCommonUtilsModuleFrontController extends ModuleFrontControll
 
 				$sortedBlock = $sortedCombination [$key_block_reference];
 
-				$subtitutions = $codeSubtitutionFrontController -> getSubtitutions($key_block_reference, $lang_id, $id_shop);
-				$searchArr = $subtitutions['search'];
-				$replaceArr = $subtitutions['replace'];
+				$Replacements = $codeReplacementFrontController -> getReplacements($key_block_reference, $lang_id, $id_shop);
+				$searchArr = $Replacements['search'];
+				$replaceArr = $Replacements['replace'];
 
 				foreach ($sortedBlock as $order => $subreferenceStructure) {
 					// $subject = $extractArr[$subreferenceStructure['subreference']]; // fills with non-subtituted text
@@ -107,7 +107,7 @@ class CombinationSeoCommonUtilsModuleFrontController extends ModuleFrontControll
                     $sortedExtractArr [$key_block_reference] [$order] = $subject;
 
                     if (!empty($searchArr) && !empty($replaceArr)) {
-					    $subtitutedSortedArr [$key_block_reference] [$order] = $codeSubtitutionFrontController -> replaceTokenList ($searchArr, $replaceArr, $subject);
+					    $subtitutedSortedArr [$key_block_reference] [$order] = $codeReplacementFrontController -> replaceTokenList ($searchArr, $replaceArr, $subject);
                     }
                     else {
                         $subtitutedSortedArr [$key_block_reference] [$order] = $sortedExtractArr [$key_block_reference] [$order];
@@ -132,7 +132,7 @@ class CombinationSeoCommonUtilsModuleFrontController extends ModuleFrontControll
 
         if (!empty($metadata)){
 
-		    $codeSubtitutionFrontController = $combinationseo_module -> getModuleFrontControllerByName('CodeSubtitution');
+		    $codeReplacementFrontController = $combinationseo_module -> getModuleFrontControllerByName('CodeReplacement');
 		    
             $codeExtractFrontController = $combinationseo_module -> getModuleFrontControllerByName('CodeExtract');
 
@@ -146,27 +146,27 @@ class CombinationSeoCommonUtilsModuleFrontController extends ModuleFrontControll
                 foreach ($languages as $language) {
                     $lang_id = $language['id_lang'];
                     // pasamos lang_id pues id_lang es nulo
-                    $subtitutions = $codeSubtitutionFrontController -> getSubtitutions($blockreference, $lang_id, $id_shop);
-				    $searchArr = $subtitutions['search'];
-				    $replaceArr = $subtitutions['replace'];
+                    $Replacements = $codeReplacementFrontController -> getReplacements($blockreference, $lang_id, $id_shop);
+				    $searchArr = $Replacements['search'];
+				    $replaceArr = $Replacements['replace'];
 
-                    $metadata -> meta_title[$lang_id] = $codeSubtitutionFrontController -> replaceTokenList ($searchArr, $replaceArr, $meta_title[$lang_id]);
-                    $metadata -> meta_description[$lang_id] = $codeSubtitutionFrontController -> replaceTokenList ($searchArr, $replaceArr, $meta_description[$lang_id]);
-                    $metadata -> meta_keywords[$lang_id] = $codeSubtitutionFrontController -> replaceTokenList ($searchArr, $replaceArr, $meta_keywords[$lang_id]);
-                    $metadata -> link_rewrite[$lang_id] = $codeSubtitutionFrontController -> replaceTokenList ($searchArr, $replaceArr, $link_rewrite[$lang_id]);
+                    $metadata -> meta_title[$lang_id] = $codeReplacementFrontController -> replaceTokenList ($searchArr, $replaceArr, $meta_title[$lang_id]);
+                    $metadata -> meta_description[$lang_id] = $codeReplacementFrontController -> replaceTokenList ($searchArr, $replaceArr, $meta_description[$lang_id]);
+                    $metadata -> meta_keywords[$lang_id] = $codeReplacementFrontController -> replaceTokenList ($searchArr, $replaceArr, $meta_keywords[$lang_id]);
+                    $metadata -> link_rewrite[$lang_id] = $codeReplacementFrontController -> replaceTokenList ($searchArr, $replaceArr, $link_rewrite[$lang_id]);
 
                 }
             }
 
             else {
-                $subtitutions = $codeSubtitutionFrontController -> getSubtitutions($blockreference, $id_lang, $id_shop);
-				$searchArr = $subtitutions['search'];
-				$replaceArr = $subtitutions['replace'];
+                $Replacements = $codeReplacementFrontController -> getReplacements($blockreference, $id_lang, $id_shop);
+				$searchArr = $Replacements['search'];
+				$replaceArr = $Replacements['replace'];
 
-                $metadata -> meta_title = $codeSubtitutionFrontController -> replaceTokenList ($searchArr, $replaceArr, $meta_title);
-                $metadata -> meta_description = $codeSubtitutionFrontController -> replaceTokenList ($searchArr, $replaceArr, $meta_description);
-                $metadata -> meta_keywords = $codeSubtitutionFrontController -> replaceTokenList ($searchArr, $replaceArr, $meta_keywords);
-                $metadata -> link_rewrite = $codeSubtitutionFrontController -> replaceTokenList ($searchArr, $replaceArr, $link_rewrite);
+                $metadata -> meta_title = $codeReplacementFrontController -> replaceTokenList ($searchArr, $replaceArr, $meta_title);
+                $metadata -> meta_description = $codeReplacementFrontController -> replaceTokenList ($searchArr, $replaceArr, $meta_description);
+                $metadata -> meta_keywords = $codeReplacementFrontController -> replaceTokenList ($searchArr, $replaceArr, $meta_keywords);
+                $metadata -> link_rewrite = $codeReplacementFrontController -> replaceTokenList ($searchArr, $replaceArr, $link_rewrite);
                     
             }
         }

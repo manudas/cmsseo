@@ -29,7 +29,7 @@ class combinationseo extends Module
 
         require_once (_PS_MODULE_DIR_.$this->name.'/models/codeextract.php');
         require_once (_PS_MODULE_DIR_.$this->name.'/models/codecombination.php');
-        require_once (_PS_MODULE_DIR_.$this->name.'/models/codesubtitution.php');
+        require_once (_PS_MODULE_DIR_.$this->name.'/models/codereplacement.php');
         require_once (_PS_MODULE_DIR_.$this->name.'/models/combinationseometadata.php');
 
         $this->author = 'Manuel José Pulgar Anguita';
@@ -79,7 +79,7 @@ class combinationseo extends Module
         
         $tab = $this -> installTab('AdminCodeCombinator', $this->trans('Combinaciones de código', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
         $tab2 = $this -> installTab('AdminCodeExtract', $this->trans('Extractos de código', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
-        $tab3 = $this -> installTab('AdminCodeSubtitution', $this->trans('Sustituciones en código', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
+        $tab3 = $this -> installTab('AdminCodeReplacement', $this->trans('Sustituciones en código', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
         $tab4 = $this -> installTab('AdminMetaData', $this->trans('Meta Data for objects', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
         $tab5 = $this -> installTab('AdminBackup', $this->trans('Import or export data for SEO', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
         
@@ -146,7 +146,7 @@ class combinationseo extends Module
     {
         $return1 = CodeExtract::createTables();
         $return2 = CodeCombination::createTables();
-        $return3 = CodeSubtitution::createTables();
+        $return3 = CodeReplacement::createTables();
         $return4 = CombinationSeoMetaData::createTables();
 
         $return = $return1 && $return2 && $return3 && $return4;
@@ -181,7 +181,7 @@ class combinationseo extends Module
         if ($dropDB == 'true') {
             $return1 = CodeExtract::dropTables();
             $return2 = CodeCombination::dropTables();
-            $return3 = CodeSubtitution::dropTables();
+            $return3 = CodeReplacement::dropTables();
             $return4 = CombinationSeoMetaData::dropTables();
 
             $return = $return1 && $return2 && $return3 && $return4;
