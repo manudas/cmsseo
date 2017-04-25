@@ -45,16 +45,7 @@ class AdminCodeReplacementController extends ModuleAdminController
 		$this -> addRowAction('edit');
 		$this -> addRowAction('delete');
 		$this -> addRowAction('details');
-		$this -> bulk_actions = array(/* Thumbnail
-		 * @todo Error, deletion of the image
-		*/
-		/*
-		$image = ImageManager::thumbnail(_PS_IMG_DIR_.'region/'.$obj->id.'.jpg', $this->table.'_'.(int)$obj->id.'.'.$this->imageType, 350, $this->imageType, true);
-		$this->fields_value = array(
-			'image' => $image ? $image : false,
-			'size' => $image ? filesize(_PS_IMG_DIR_.'example/'.$obj->id.'.jpg') / 1000 : false,
-		);
-		*/
+		$this -> bulk_actions = array(
 			'delete' => array(
 				'text' => $this->trans('Delete selected', array(), 'Modules.cmsseo.Admin'),
 				'confirm' => $this->trans('Delete selected items?', array(), 'Modules.cmsseo.Admin')
@@ -133,6 +124,13 @@ class AdminCodeReplacementController extends ModuleAdminController
 
 	public function renderForm()
 	{
+		$blockreferences = CodeExtract::getBlockReferences();
+		
+		$options_blockreferences = array();
+		foreach ($blockreferences as $blockreference){
+			$options_blockreferences[] = array('id_option' => $blockreference, 'name' => $blockreference );
+		}
+		
 		$this -> fields_form = array(
 			'tinymce' => true,
 			'legend' => array(
@@ -166,12 +164,19 @@ class AdminCodeReplacementController extends ModuleAdminController
 					'size' => 32
 				),
 				array(
-					'type' => 'text',
+					'type' => 'select',
 					// 'lang' => true,
 					'label' => $this->l('Related block reference:'),
 					'name' => 'blockreference',
 					'required' => true,
-					'size' => 32
+					'hint' => $this->trans('You will find here the references entered in Code Extracts', array(), 'Modules.cmsseo.Admin'),
+					'desc' => $this->trans('You will find here the references entered in Code Extracts', array(), 'Modules.cmsseo.Admin'),
+					'required' => true,
+					'options' => array(
+									'query' => $options_blockreferences,
+									'id' => 'id_option', 
+									'name' => 'name'
+								),
 				),
 			),
 			'buttons' => array(

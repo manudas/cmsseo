@@ -66,15 +66,15 @@ class CombinationSeoCommonUtilsModuleFrontController extends ModuleFrontControll
 		//$combinationseo_module = /* Module :: getInstanceByName ( */ $this -> module /* -> name)*/;
         $combinationseo_module = Module::getInstanceByName('combinationseo');
 		
-        $codeExtractFrontController = $combinationseo_module -> getModuleFrontControllerByName('CodeExtract');
+        // $codeExtractFrontController = $combinationseo_module -> getModuleFrontControllerByName('CodeExtract');
 
-		$codeReplacementFrontController = $combinationseo_module -> getModuleFrontControllerByName('CodeReplacement');
+		// $codeReplacementFrontController = $combinationseo_module -> getModuleFrontControllerByName('CodeReplacement');
 
-        $codeCombinator = $combinationseo_module -> getModuleFrontControllerByName('CodeCombinator');
+        // $codeCombinator = $combinationseo_module -> getModuleFrontControllerByName('CodeCombinator');
 
-		$sortedCombination = $codeCombinator -> getSortedCombination ( $type, $lang_id, $id_shop, $blockreference, $subreferenceList );
+		$sortedCombination = CodeCombination::getSortedCombination ( $type, $lang_id, $id_shop, $blockreference, $subreferenceList );
 
-		$combinationReferenceStructure = $codeCombinator -> getCombinationReferenceStructure ($type, $lang_id, $id_shop, $blockreference, $subreferenceList );
+		$combinationReferenceStructure = CodeCombination::getCombinationReferenceStructure ($type, $lang_id, $id_shop, $blockreference, $subreferenceList );
 
 		if (!empty($sortedCombination)){
 
@@ -93,11 +93,11 @@ class CombinationSeoCommonUtilsModuleFrontController extends ModuleFrontControll
                 if (empty($subreferenceList)) {
 				    $subreferenceList = array_keys ($combinationReference);	
                 }		
-				$extractArr = $extractArr + $codeExtractFrontController -> getCodeExtractCollection ($key_block_reference, $lang_id, $id_shop, $subreferenceList);
+				$extractArr = $extractArr + CodeExtract::getCodeExtractCollection ($key_block_reference, $lang_id, $id_shop, $subreferenceList);
 
 				$sortedBlock = $sortedCombination [$key_block_reference];
 
-				$Replacements = $codeReplacementFrontController -> getReplacements($key_block_reference, $lang_id, $id_shop);
+				$Replacements = CodeReplacement::getReplacements($key_block_reference, $lang_id, $id_shop);
 				$searchArr = $Replacements['search'];
 				$replaceArr = $Replacements['replace'];
 
@@ -107,7 +107,7 @@ class CombinationSeoCommonUtilsModuleFrontController extends ModuleFrontControll
                     $sortedExtractArr [$key_block_reference] [$order] = $subject;
 
                     if (!empty($searchArr) && !empty($replaceArr)) {
-					    $subtitutedSortedArr [$key_block_reference] [$order] = $codeReplacementFrontController -> replaceTokenList ($searchArr, $replaceArr, $subject);
+					    $subtitutedSortedArr [$key_block_reference] [$order] = CodeReplacement::replaceTokenList ($searchArr, $replaceArr, $subject);
                     }
                     else {
                         $subtitutedSortedArr [$key_block_reference] [$order] = $sortedExtractArr [$key_block_reference] [$order];
@@ -124,17 +124,9 @@ class CombinationSeoCommonUtilsModuleFrontController extends ModuleFrontControll
 
         $combinationseo_module = Module :: getInstanceByName ('combinationseo');
         
-        $metaDataController = $combinationseo_module -> getModuleFrontControllerByName('MetaData');
-
-        $metadata = $metaDataController -> getMetaDataCollection ($id_object, $object_type, $id_lang, $id_shop);
-
-        
+        $metadata = CombinationSeoMetaData::getMetaDataCollection ($id_object, $object_type, $id_lang, $id_shop);     
 
         if (!empty($metadata)){
-
-		    $codeReplacementFrontController = $combinationseo_module -> getModuleFrontControllerByName('CodeReplacement');
-		    
-            $codeExtractFrontController = $combinationseo_module -> getModuleFrontControllerByName('CodeExtract');
 
             $meta_title = $metadata -> meta_title;
             $meta_description = $metadata -> meta_description;
@@ -146,27 +138,27 @@ class CombinationSeoCommonUtilsModuleFrontController extends ModuleFrontControll
                 foreach ($languages as $language) {
                     $lang_id = $language['id_lang'];
                     // pasamos lang_id pues id_lang es nulo
-                    $Replacements = $codeReplacementFrontController -> getReplacements($blockreference, $lang_id, $id_shop);
+                    $Replacements = CodeReplacement::getReplacements($blockreference, $lang_id, $id_shop);
 				    $searchArr = $Replacements['search'];
 				    $replaceArr = $Replacements['replace'];
 
-                    $metadata -> meta_title[$lang_id] = $codeReplacementFrontController -> replaceTokenList ($searchArr, $replaceArr, $meta_title[$lang_id]);
-                    $metadata -> meta_description[$lang_id] = $codeReplacementFrontController -> replaceTokenList ($searchArr, $replaceArr, $meta_description[$lang_id]);
-                    $metadata -> meta_keywords[$lang_id] = $codeReplacementFrontController -> replaceTokenList ($searchArr, $replaceArr, $meta_keywords[$lang_id]);
-                    $metadata -> link_rewrite[$lang_id] = $codeReplacementFrontController -> replaceTokenList ($searchArr, $replaceArr, $link_rewrite[$lang_id]);
+                    $metadata -> meta_title[$lang_id] = CodeReplacement::replaceTokenList ($searchArr, $replaceArr, $meta_title[$lang_id]);
+                    $metadata -> meta_description[$lang_id] = CodeReplacement::replaceTokenList ($searchArr, $replaceArr, $meta_description[$lang_id]);
+                    $metadata -> meta_keywords[$lang_id] = CodeReplacement::replaceTokenList ($searchArr, $replaceArr, $meta_keywords[$lang_id]);
+                    $metadata -> link_rewrite[$lang_id] = CodeReplacement::replaceTokenList ($searchArr, $replaceArr, $link_rewrite[$lang_id]);
 
                 }
             }
 
             else {
-                $Replacements = $codeReplacementFrontController -> getReplacements($blockreference, $id_lang, $id_shop);
+                $Replacements = CodeReplacement::getReplacements($blockreference, $id_lang, $id_shop);
 				$searchArr = $Replacements['search'];
 				$replaceArr = $Replacements['replace'];
 
-                $metadata -> meta_title = $codeReplacementFrontController -> replaceTokenList ($searchArr, $replaceArr, $meta_title);
-                $metadata -> meta_description = $codeReplacementFrontController -> replaceTokenList ($searchArr, $replaceArr, $meta_description);
-                $metadata -> meta_keywords = $codeReplacementFrontController -> replaceTokenList ($searchArr, $replaceArr, $meta_keywords);
-                $metadata -> link_rewrite = $codeReplacementFrontController -> replaceTokenList ($searchArr, $replaceArr, $link_rewrite);
+                $metadata -> meta_title = CodeReplacement::replaceTokenList ($searchArr, $replaceArr, $meta_title);
+                $metadata -> meta_description = CodeReplacement::replaceTokenList ($searchArr, $replaceArr, $meta_description);
+                $metadata -> meta_keywords = CodeReplacement::replaceTokenList ($searchArr, $replaceArr, $meta_keywords);
+                $metadata -> link_rewrite = CodeReplacement::replaceTokenList ($searchArr, $replaceArr, $link_rewrite);
                     
             }
         }
@@ -181,7 +173,7 @@ class CombinationSeoCommonUtilsModuleFrontController extends ModuleFrontControll
          */
         $combinationseo_module = Module :: getInstanceByName ('combinationseo');
 
-        $frontCodeCombinatorController =  $combinationseo_module -> getModuleFrontControllerByName('CodeCombinator');
+        // $frontCodeCombinatorController =  $combinationseo_module -> getModuleFrontControllerByName('CodeCombinator');
         
         $blockReference = CodeCombination::getBlockReferenceByObjectIdAndType ($id, $object_type, $id_lang, $id_shop);      
 

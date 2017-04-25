@@ -14,13 +14,6 @@
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 */
 
-/**
- * Tab Metadata - Controller Admin Metadata
- *
- * @category   	Module / frontofficefeatures
- * @author     	Manuel José Pulgar Anguita <cibermanu@hotmail.com>
- * @copyright  	2017 Manuel José Pulgar Anguita
-*/
 
 class AdminMetaDataController extends ModuleAdminController
 {
@@ -47,6 +40,7 @@ class AdminMetaDataController extends ModuleAdminController
 
 		
 	}
+
 	/**
 	 * Function used to render the list to display for this controller
 	 */
@@ -92,51 +86,6 @@ class AdminMetaDataController extends ModuleAdminController
 		return $lists;
 	}
 
-
-	/**
-	 * method call when ajax request is made with the details row action
-	 * @see AdminController::postProcess()
-	 */
-	/*
-	public function ajaxProcessDetails()
-	{
-		if (($id = Tools::getValue('id')))
-		{
-			// override attributes
-			$this->display = 'list';
-			$this->lang = false;
-			$this->addRowAction('edit');
-			$this->addRowAction('delete');
-			$this->_select = 'b.*';
-			$this->_join = 'LEFT JOIN `'._DB_PREFIX_.'tab_lang` b ON (b.`id_tab` = a.`id_tab` AND b.`id_lang` = '.$this->context->language->id.')';
-			$this->_where = 'AND a.`id_parent` = '.(int)$id;
-			$this->_orderBy = 'position';
-			// get list and force no limit clause in the request
-			$this->getList($this->context->language->id);
-			// Render list
-			$helper = new HelperList();
-			$helper->actions = $this->actions;
-			$helper->list_skip_actions = $this->list_skip_actions;
-			$helper->no_link = true;
-			$helper->shopLinkType = '';
-			$helper->identifier = $this->identifier;
-			$helper->imageType = $this->imageType;
-			$helper->toolbar_scroll = false;
-			$helper->show_toolbar = false;
-			$helper->orderBy = 'position';
-			$helper->orderWay = 'ASC';
-			$helper->currentIndex = self::$currentIndex;
-			$helper->token = $this->token;
-			$helper->table = $this->table;
-			$helper->position_identifier = $this->position_identifier;
-			// Force render - no filter, form, js, sorting ...
-			$helper->simple_header = true;
-			$content = $helper->generateList($this->_list, $this->fields_list);
-			echo Tools::jsonEncode(array('use_parent_structure' => false, 'data' => $content));
-		}
-		die;
-	}
-	*/
 
 	public function renderForm()
 	{
@@ -268,22 +217,14 @@ class AdminMetaDataController extends ModuleAdminController
 			$default_lang = Configuration::get('PS_LANG_DEFAULT');
 			
 			foreach ($languages as $language){
-				// $metadata -> id_object[$language['id_lang']] = Tools::getValue('id_object_'.$language['id_lang']);
-				// $metadata -> object_type[$language['id_lang']] = Tools::getValue('object_type_'.$language['id_lang']);
+
 				$metadata -> meta_title[$language['id_lang']] = Tools::getValue('meta_title_'.$language['id_lang']);				
 				$metadata -> meta_description[$language['id_lang']] = Tools::getValue('meta_description_'.$language['id_lang']);
 				$metadata -> meta_keywords[$language['id_lang']] = Tools::getValue('meta_keywords_'.$language['id_lang']);
 				$metadata -> link_rewrite[$language['id_lang']] = Tools::getValue('link_rewrite_'.$language['id_lang']);
 
 				if ($default_lang == $language['id_lang']) {
-					/*
-					if (empty ($metadata -> id_object[$language['id_lang']]) ) {
-						$this->errors[] = Tools::displayError('An error has occurred: id_object couldn\'t be empty in the default language');
-					}
-					if (empty ($metadata -> object_type[$language['id_lang']]) ) {
-						$this->errors[] = Tools::displayError('An error has occurred: object_type couldn\'t be empty in the default language');
-					}
-					*/
+
 					if (empty ($metadata -> link_rewrite[$language['id_lang']]) ) {
 						$this->errors[] = Tools::displayError('An error has occurred: link_rewrite couldn\'t be empty in the default language');
 					}				

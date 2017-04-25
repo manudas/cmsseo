@@ -60,13 +60,7 @@ class CombinationSeoMetaData extends ObjectModel
 	public static function createContentTable()
 	{
 
-/*
-		$sq1 = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.self::$definition['table'].'`(
-			`id` int(10) unsigned NOT NULL auto_increment,
-			`id_shop` int(10) unsigned NOT NULL,
-			PRIMARY KEY (`id`)
-			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
-*/
+
 		$sq1 = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.self::$definition['table'].'`(
 			`id` int(10) unsigned NOT NULL auto_increment,
 			`id_object` int(10) NOT NULL,
@@ -98,6 +92,39 @@ class CombinationSeoMetaData extends ObjectModel
 		$result = Db::getInstance()->execute($sq1) 
 			&& Db::getInstance()->execute($sq2) 
 			&& Db::getInstance()->execute($sq3);
+
+		return $result;
+	}
+
+	public static function getMetaDataCollection ($id_object, $object_type, $id_lang, $id_shop)
+
+    {		
+		if (empty($id_object)) {
+            throw new PrestaShopException(get_called_class() .":: getMetaDataCollection:: Can't get set width an empty id_object");
+        }
+        if (empty($object_type)) {
+            throw new PrestaShopException(get_called_class() .":: getMetaDataCollection:: Can't get set width an empty object_type");
+        }
+
+		if (empty($id_shop)) {
+            $id_shop = Context::getContext()->shop->id;
+        }
+
+		$metaDataCollection = new PrestashopCollection('CombinationSeoMetaData', $id_lang);
+
+        $metaDataCollection -> where ('id_object', '=', $id_object);
+
+        $metaDataCollection -> where ('object_type', '=', $object_type);
+
+        $metaDataCollection -> where ('id_shop', '=', $id_shop);
+
+		$result = null;
+
+		if (!empty($metaDataCollection[0])) { // solo debe haber un resultado (lang, shop, id y type conforman clave primaria)
+            
+            $result  = $metaDataCollection -> getFirst();
+            
+        }
 
 		return $result;
 	}

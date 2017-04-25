@@ -145,6 +145,84 @@ class CodeCombination extends ObjectModel
 
 		return $result;
 	}
+
+	/**
+    * @return An array with the following structure:
+    * - principal index: blockreference
+    * - secondary index: order of subreference
+    * - third index: subreference and ObjectModel CodeCombination
+    */
+    public static function getSortedCombination($type, $lang_id, $id_shop, $blockreference = null, $subreferenceList = null) {
+		
+        if (empty($type)) {
+            throw new PrestaShopException(get_called_class() .":: getSortedCombination:: Can't get set width an empty type");
+        }
+
+        if (empty($id_shop)) {
+            $id_shop = Context::getContext()->shop->id;
+        }
+        $combinationCollection = new PrestashopCollection('CodeCombination', $lang_id);
+        
+        if (!empty($blockreference)) {
+            $combinationCollection -> where ('blockreference', '=', $blockreference);
+        }
+        $combinationCollection -> where ('type', '=', $type);
+        $combinationCollection -> where ('id_shop', '=', $id_shop);
+
+        if (!empty($subreferenceList)) {
+            $combinationCollection -> where ('subreference', 'in', $subreferenceList);
+        }
+
+        $combinationCollection -> orderBy ('order', 'asc');
+
+        $result = array();
+
+        if (!empty($combinationCollection[0])) {
+            foreach ($combinationCollection as $combination) {
+                $result [$combination -> blockreference] [$combination -> order] ['subreference'] = $combination -> subreference;
+                $result [$combination -> blockreference] [$combination -> order] ['object'] = $combination;
+            }
+        }
+        
+        return $result;
+    }
+
+	public static function getCombinationReferenceStructure ($type, $id_lang, $id_shop, $blockreference = null, $subreferenceList = null){
+		
+		if (empty($type)) {
+            throw new PrestaShopException(get_called_class() .":: getCombinationReferenceStructure:: Can't get set width an empty type");
+        }
+
+        if (empty($id_shop)) {
+            $id_shop = Context::getContext()->shop->id;
+        }
+
+        $combinationCollection = new PrestashopCollection('CodeCombination', $id_lang);
+
+        if (!empty($blockreference)) {
+            $combinationCollection -> where ('blockreference', '=', $blockreference);
+        }
+        $combinationCollection -> where ('type', '=', $type);
+        $combinationCollection -> where ('id_shop', '=', $id_shop);
+
+        if (!empty($subreferenceList)) {
+            $combinationCollection -> where ('subreference', 'in', $subreferenceList);
+        }
+
+        $combinationCollection -> orderBy ('order', 'asc');
+
+
+        $result = array();
+
+        if (!empty($combinationCollection[0])) {
+            foreach ($combinationCollection as $combination) {
+                $result [$combination -> blockreference] [$combination -> subreference] = $combination;
+            }
+        }
+        
+        return $result;
+	}
+
 }
 
 ?>

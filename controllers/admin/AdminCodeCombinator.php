@@ -148,31 +148,12 @@ class AdminCodeCombinatorController extends ModuleAdminController
 	}
 	*/
 
-	public function getBlockReferences () {
-
-		$module = Module::getInstanceByName('combinationseo');
-		
-		$extractFrontController = $module -> getModuleFrontControllerByName('CodeExtract');
-
-		$result = $extractFrontController -> getBlockReferencesArr();
-		
-		return $result;
-	}
-
-	public function getSubreferenceArrByBlockReference($blockReference){
-		$module = Module::getInstanceByName('combinationseo');
-		
-		$extractFrontController = $module -> getModuleFrontControllerByName('CodeExtract');
-
-		$result = $extractFrontController -> getSubreferenceArrByBlockReference($blockReference);
-		
-		return $result;
-	}
+	
 
 	public function renderForm()
 	{
 
-		$blockreferences = $this -> getBlockReferences();
+		$blockreferences = CodeExtract::getBlockReferences();
 		
 		$options_blockreferences = array();
 		foreach ($blockreferences as $blockreference){
@@ -193,7 +174,7 @@ class AdminCodeCombinatorController extends ModuleAdminController
 		}
 
 		if (!empty ($selected_breference)) {
-			$subRefereceList = $this -> getSubreferenceArrByBlockReference($selected_breference);
+			$subRefereceList = CodeExtract::getSubreferenceArrByBlockReference($selected_breference);
 		}
 
 		if (empty($selected_subreference) && (!empty ($subRefereceList))){
@@ -201,10 +182,11 @@ class AdminCodeCombinatorController extends ModuleAdminController
 		}
 
 		$options_subreferences = array();
-		foreach ($subRefereceList as $subreference){
-			$options_subreferences[] = array('id_option' => $subreference, 'name' => $subreference );
+		if (!empty($subRefereceList)) {
+			foreach ($subRefereceList as $subreference){
+				$options_subreferences[] = array('id_option' => $subreference, 'name' => $subreference );
+			}
 		}
-
 		$type_selector_options = array (
 			array ('id_option' => 'cms', 'name' => 'cms'),
 			array ('id_option' => 'category', 'name' => 'category'),
@@ -314,8 +296,8 @@ class AdminCodeCombinatorController extends ModuleAdminController
 			return;
 		
 		if (!empty($id)) {
-			foreach (CodeCombination::$definition['fields'] as $field){
-				$this -> fields_value = array($field => $current_combination -> $field);
+			foreach (CodeCombination::$definition['fields'] as $field_name => $field_values){
+				$this -> fields_value = array($field_name => $current_combination -> $field_name);
 			}
 		}
 		return parent::renderForm();
@@ -329,22 +311,13 @@ class AdminCodeCombinatorController extends ModuleAdminController
 		if ((Tools::isSubmit('blockreference')) /*&& (Tools::isSubmit('subreference'))*/) 
 		{
 			$blockreference = Tools::getValue('blockreference');
-			// $subreference = Tools::getValue('subreference');
-			// $language_id = Tools::getValue('language');
+
 
 			if (!empty($blockreference)) {
 				$code_extract_collection = new PrestashopCollection('CodeExtract', null);
-				// $code_extract_collection = new PrestashopCollection('CodeExtract', $language_id);
 
-				// $code_extract_collection -> where('blockreference', 'regexp', $blockreference);
 				$code_extract_collection -> where('blockreference', '=', $blockreference);
 
-				/*
-				if (!empty($subreference)) {
-					$code_extract_collection -> where('subreference', 'regexp', $subreference);
-				//$code_extract_collection -> sqlWhere ('LOWER(blockreference) = "'. strtolower(blockreference). '" AND LOWER(subreference) like "%'. strtolower($subreference). '%" AND id_lang = '.$language_id);
-				}
-				*/
 			}
 				
 			foreach ($code_extract_collection as $extract) {
@@ -355,36 +328,7 @@ class AdminCodeCombinatorController extends ModuleAdminController
 		die;
 	}
 
-/*
-	public function ajaxProcessGetReferencesOptions() {
-		
-		$options = "";
 
-		if (Tools::isSubmit('blockreference')) 
-		{
-			$blockreference = Tools::getValue('blockreference');
-
-			// $language_id = Tools::getValue('language');
-			// $code_extract_collection = new PrestashopCollection('CodeExtract', $language_id);
-
-			$code_extract_collection = new PrestashopCollection('CodeExtract', null);
-			// $code_extract_collection -> join ('codeextract_lang', 'id_lang');
-			if (!empty($blockreference)){
-				$code_extract_collection -> where('blockreference', 'regexp', $blockreference);
-			}
-			//$code_extract_collection -> where('subreference', 'regexp', $subreference);
-			
-			//$code_extract_collection -> sqlWhere ('LOWER(blockreference) like "%'. strtolower($blockreference). '%" AND id_lang = '.$language_id);
-
-				
-			foreach ($code_extract_collection as $extract) {
-				$options .= "<option value='{$extract -> blockreference}' />";
-			}
-		}
-		echo $options;
-		die;
-	}
-*/
 	public function setMedia()
 	{
 		parent::setMedia();
@@ -412,59 +356,21 @@ class AdminCodeCombinatorController extends ModuleAdminController
 			$shop = Tools::getValue('id_shop');
 			$id = Tools::getValue('id');
 
-			/*
-			'id' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => false),
-			'subreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'lang' => TRUE),
-			'blockreference' =>      	array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'lang' => TRUE),
-			'id_cms' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'lang' => TRUE),
-			'order' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'lang' => TRUE)
-			*/
 			$code_combination = new CodeCombination($id, null, $shop);
-			// $languages = Language::getLanguages(false);
 
 			$code_combination -> subreference = 	Tools::getValue('subreference');
 			$code_combination -> blockreference = 	Tools::getValue('blockreference');
 			$code_combination -> id_object = 		Tools::getValue('id_object');
 			$code_combination -> order = 			Tools::getValue('order');
 			$code_combination -> type = 			Tools::getValue('type');
-/*
-			foreach ($languages as $language){
-				$code_combination -> subreference[$language['id_lang']] = Tools::getValue('subreference_'.$language['id_lang']);
-				$code_combination -> blockreference[$language['id_lang']] = Tools::getValue('blockreference_'.$language['id_lang']);
-				$code_combination -> id_object[$language['id_lang']] = Tools::getValue('id_object_'.$language['id_lang']);
-				$code_combination -> order[$language['id_lang']] = Tools::getValue('order_'.$language['id_lang']);
-				$code_combination -> type[$language['id_lang']] = Tools::getValue('type_'.$language['id_lang']);
 
-
-				if ($default_lang == $language['id_lang']) {
-					if (empty ($code_combination -> blockreference[$language['id_lang']]) ) {
-						$this->errors[] = Tools::displayError('An error has occurred: blockreference couldn\'t be empty in the default language');
-					}
-					if (empty ($code_combination -> subreference[$language['id_lang']]) ) {
-						$this->errors[] = Tools::displayError('An error has occurred: subreference couldn\'t be empty in the default language');
-					}
-					if (empty ($code_combination -> id_object[$language['id_lang']]) ) {
-						$this->errors[] = Tools::displayError('An error has occurred: id_object couldn\'t be empty in the default language');
-					}		
-					if (empty ($code_combination -> order[$language['id_lang']]) ) {
-						$this->errors[] = Tools::displayError('An error has occurred: order couldn\'t be empty in the default language');
-					}		
-					if (empty ($code_combination -> type[$language['id_lang']]) ) {
-						$this->errors[] = Tools::displayError('An error has occurred: type couldn\'t be empty in the default language');
-					}
-				}
-
-			}
-*/
-			//if (empty($this->errors)) {	
-				// Save object
 			if (!$code_combination->save()) {
 				$this->errors[] = Tools::displayError('An error has occurred: Can\'t save the current object');
 			}
 			else {
 				Tools::redirectAdmin(self::$currentIndex.'&conf=4&token='.$this -> token);
 			}
-			//}
+
 		}
 
 		parent::postProcess();

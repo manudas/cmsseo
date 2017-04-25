@@ -38,7 +38,8 @@ class CMS extends CMSCore
          */
         $combinationseo_module = Module :: getInstanceByName ('combinationseo');
 
-        $commonUtilsFronController = $combinationseo_module -> getModuleFrontControllerByName('CommonUtils');
+        // this makes the controller to be included and loaded
+        $commonUtilsFronController = $combinationseo_module -> getModuleFrontControllerByName('CommonUtils'); 
 
         $code_LANG = CombinationSeoCommonUtilsModuleFrontController::getPreparedCodeContent($id, 'cms', $id_lang, $id_shop);
         
@@ -169,19 +170,9 @@ class CMS extends CMSCore
         }
         $cache_id = 'objectmodel_shop_'.$this->def['classname'].'_'.(int)$this->id.'-'.(int)$id_shop;
         if (!ObjectModel::$cache_objects || !Cache::isStored($cache_id)) {
-            
-            /* 
-            $combination_collection = new PrestashopCollection('CodeCombination');
-            $where_str = "a1.`type` = 'cms' AND a1.`id_object` = '" . $this -> id . "' AND a0.`id_shop` = '" . $id_shop ."'";
-            $combination_collection -> sqlWhere($where_str);
-            if (!empty($combination_collection [0])) {
-                $associated = $id_shop;
-            }
-            */
 
             $blockReference = CodeCombination::getBlockReferenceByObjectIdAndType ($this -> id, 'cms', null, $id_shop);      
 
-            // $code_LANG = CombinationSeoCommonUtilsModuleFrontController::getPreparedCodeContent($this -> id, 'cms', null, $id_shop);
             if (!empty($blockReference)) {
                 $associated = $id_shop;
             }
