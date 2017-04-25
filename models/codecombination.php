@@ -83,7 +83,7 @@ class CodeCombination extends ObjectModel
 		return $result;
 	}
 
-	public static function getBlockReferenceByObjectIdAndType($id_object, $type, $id_lang, $id_shop) {
+	public static function getBlockReferenceByObjectIdAndType($id_object, $type/*, $id_lang*/, $id_shop) {
 		if (empty($id_object)) {
 			error_log("CodeCombination :: getBlockReferenceByObjectIdAndType:: Can't get codeCombination width an empty id_object");
             return null;
@@ -96,7 +96,7 @@ class CodeCombination extends ObjectModel
 			$id_shop = Context::getContext()->shop->id;
 		}
 
-		$ps_collection = new PrestashopCollection('CodeCombination', $id_lang);
+		$ps_collection = new PrestashopCollection('CodeCombination'/*, $id_lang*/);
 
        
         $ps_collection -> where ('type', '=', $type);
@@ -112,13 +112,14 @@ class CodeCombination extends ObjectModel
 		}
 	}
 
-	public static function getSubReferenceByObjectIdTypeAndBlockreference( $id_object, $type, $id_lang, $id_shop, $blockreference) {
+
+	public static function getSubReferenceByObjectIdTypeAndBlockreference( $id_object, $type/*, $id_lang*/, $id_shop, $blockreference) {
 		if (empty($id_object)) {
-			error_log("CodeCombination :: getBlockReferenceByObjectIdAndType:: Can't get codeCombination width an empty id_object");
+			error_log("CodeCombination :: getSubReferenceByObjectIdTypeAndBlockreference:: Can't get codeCombination width an empty id_object");
             return null;
         }
 		if (empty($type)) {
-            throw new PrestaShopException("CodeCombination :: getBlockReferenceByObjectIdAndType:: Can't get codeCombination width an empty type");
+            throw new PrestaShopException("CodeCombination :: getSubReferenceByObjectIdTypeAndBlockreference:: Can't get codeCombination width an empty type");
         }
 		if (empty($blockreference)) {
             throw new PrestaShopException("CodeCombination :: getSubReferenceByObjectIdTypeAndBlockreference:: Can't get codeCombination width an empty blockreferencetype");
@@ -128,7 +129,7 @@ class CodeCombination extends ObjectModel
 			$id_shop = Context::getContext()->shop->id;
 		}
 
-		$ps_collection = new PrestashopCollection('CodeCombination', $id_lang);
+		$ps_collection = new PrestashopCollection('CodeCombination'/*, $id_lang*/);
 
         $ps_collection -> where ('type', '=', $type);
         
@@ -152,7 +153,7 @@ class CodeCombination extends ObjectModel
     * - secondary index: order of subreference
     * - third index: subreference and ObjectModel CodeCombination
     */
-    public static function getSortedCombination($type, $lang_id, $id_shop, $blockreference = null, $subreferenceList = null) {
+    public static function getSortedCombination($type/*, $lang_id*/, $id_shop, $blockreference = null, $subreferenceList = null) {
 		
         if (empty($type)) {
             throw new PrestaShopException(get_called_class() .":: getSortedCombination:: Can't get set width an empty type");
@@ -161,7 +162,7 @@ class CodeCombination extends ObjectModel
         if (empty($id_shop)) {
             $id_shop = Context::getContext()->shop->id;
         }
-        $combinationCollection = new PrestashopCollection('CodeCombination', $lang_id);
+        $combinationCollection = new PrestashopCollection('CodeCombination'/*, $lang_id*/);
         
         if (!empty($blockreference)) {
             $combinationCollection -> where ('blockreference', '=', $blockreference);
@@ -187,7 +188,7 @@ class CodeCombination extends ObjectModel
         return $result;
     }
 
-	public static function getCombinationReferenceStructure ($type, $id_lang, $id_shop, $blockreference = null, $subreferenceList = null){
+	public static function getCombinationReferenceStructure ($type/*, $id_lang*/, $id_shop, $blockreference = null, $subreferenceList = null){
 		
 		if (empty($type)) {
             throw new PrestaShopException(get_called_class() .":: getCombinationReferenceStructure:: Can't get set width an empty type");
@@ -221,6 +222,92 @@ class CodeCombination extends ObjectModel
         }
         
         return $result;
+	}
+
+	private static function sortCollectionByBlockReference($combinationCollection) {
+		$result = array();
+		if  (count ($combinationCollection) > 0){
+			foreach ($combinationCollection as $combination) {
+				$result[$combination -> blockreference][] = $combination;
+			}
+		}
+		return $result;
+	}
+
+	public static function getXML_Backup_File($blockReferences, $subreferences, $types, $ids, $shops/*, $langs*/) {
+		
+		$combinationCollection = new PrestashopCollection('CodeCombination');
+
+		if (!empty($blockReferences)) {
+			$combinationCollection -> where ('blockreference', 'in', $blockReferences);
+		}
+		if (!empty($subreferences)) {
+			$combinationCollection -> where ('subreference', 'in', $subreferences);
+		}
+		if (!empty($types)) {
+			$combinationCollection -> where ('type', 'in', $types);
+		}
+		if (!empty($ids)) {
+			$combinationCollection -> where ('id_object', 'in', $ids);
+		}
+		if (!empty($shops)) {
+			$combinationCollection -> where ('id_shop', 'in', $shops);
+		}
+
+		$sortedCombinationCollection = self::sortCollectionByBlockReference($combinationCollection);
+
+		// $extractXML = new SimpleXMLElement("<extractlist></extractlist>");
+		$xml = new DOMDocument( "1.0", "utf-8" );
+		$root_element = $xml -> createElement( "combinationlist" );
+
+		$xml -> appendChild( $root_element );
+
+		if (count($sortedCombinationCollection) > 0) {
+
+			foreach ($sortedCombinationCollection as $current_block_reference => $combinationList) {
+
+				$combination_node = $xml -> createElement( "combination" );
+				$combination_node -> setAttribute( "blockreference", $current_block_reference );
+
+				$root_element -> appendChild ($combination_node);
+
+				foreach ( $combinationList as $combination ) {
+
+					$id_shop = $combination -> id_shop;
+					$shop = new Shop($id_shop);
+					$shop_name = $shop -> name;
+					
+					$subreference_node = $xml -> createElement( "subreference" );
+					$subreference_node -> setAttribute( "name", $combination -> subreference );
+
+					$subreference_node -> setAttribute( "id_object", $combination -> id_object );
+					$subreference_node -> setAttribute( "type", $combination -> type );
+					$subreference_node -> setAttribute( "shop", $shop_name );
+
+					$combination_node -> appendChild( $subreference_node );
+
+				}
+
+			}
+		}
+
+		$result_string = $xml -> saveXml();
+
+		$filename = "COMBINATIONS_". date('Y-m-d');
+
+		if (empty($blockReferences) && empty($subreferences) 
+					&& empty($types) && empty($ids) && empty($shops)) {
+
+			$filename .= "_FULL";
+
+		}
+
+		$filename .= "_BACKUP.XML";
+
+		header('Content-type: text/xml');
+		header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+		die ($result_string);
 	}
 
 }

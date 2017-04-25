@@ -50,32 +50,6 @@ class AdminBackupController extends ModuleAdminController
 
 
 		parent::__construct();
-
-		
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-colorcar esto en algun metodo ? que hacer ?
-$tpl_path = _PS_MODULE_DIR_ .'belvg_searchpro/views/templates/admin/features.tpl';
-$data = $this->context->smarty->createTemplate($tpl_path, $this->context->smarty);
-*/
-
-
-
-
-
-
 		
 	}
 
@@ -96,9 +70,16 @@ $data = $this->context->smarty->createTemplate($tpl_path, $this->context->smarty
 
 	public function postProcess()
 	{
-		if (Tools::isSubmit('submitAdd'.$this->table))
+		// if (Tools::isSubmit('submitAdd'.$this->table))
+		if (Tools::isSubmit('submitBackup'))
 		{
-            // not sure what to do here for now
+			if (Tools::isSubmit('extracts')) {
+				CodeExtract::getXML_Backup_File();
+			}
+			else if (Tools::isSubmit('combinations')) {
+				CodeCombination::getXML_Backup_File();
+			}
+            
 		}
 	}
 
@@ -108,6 +89,8 @@ $data = $this->context->smarty->createTemplate($tpl_path, $this->context->smarty
 		parent::setMedia();
 		
 		$this -> addCSS(_MODULE_DIR_.$this->module->name.'/views/css/backup.css');
+		// $this -> addJS(_MODULE_DIR_.$this->module->name.'/views/js/backup.js');
+
 
 	}
 

@@ -72,9 +72,9 @@ class CombinationSeoCommonUtilsModuleFrontController extends ModuleFrontControll
 
         // $codeCombinator = $combinationseo_module -> getModuleFrontControllerByName('CodeCombinator');
 
-		$sortedCombination = CodeCombination::getSortedCombination ( $type, $lang_id, $id_shop, $blockreference, $subreferenceList );
+		$sortedCombination = CodeCombination::getSortedCombination ( $type/*, $lang_id*/, $id_shop, $blockreference, $subreferenceList );
 
-		$combinationReferenceStructure = CodeCombination::getCombinationReferenceStructure ($type, $lang_id, $id_shop, $blockreference, $subreferenceList );
+		$combinationReferenceStructure = CodeCombination::getCombinationReferenceStructure ($type/*, $lang_id*/, $id_shop, $blockreference, $subreferenceList );
 
 		if (!empty($sortedCombination)){
 
@@ -175,7 +175,7 @@ class CombinationSeoCommonUtilsModuleFrontController extends ModuleFrontControll
 
         // $frontCodeCombinatorController =  $combinationseo_module -> getModuleFrontControllerByName('CodeCombinator');
         
-        $blockReference = CodeCombination::getBlockReferenceByObjectIdAndType ($id, $object_type, $id_lang, $id_shop);      
+        $blockReference = CodeCombination::getBlockReferenceByObjectIdAndType ($id, $object_type/*, $id_lang*/, $id_shop);      
 
         if (!empty ($blockReference)) {
 
@@ -189,7 +189,7 @@ class CombinationSeoCommonUtilsModuleFrontController extends ModuleFrontControll
                     continue;
                 }
 
-                $subreferenceList = CodeCombination::getSubReferenceByObjectIdTypeAndBlockreference( $id, $object_type, $id_lang, $id_shop, $translated_blockReference );
+                $subreferenceList = CodeCombination::getSubReferenceByObjectIdTypeAndBlockreference( $id, $object_type/*, $id_lang*/, $id_shop, $translated_blockReference );
 
                 $combination_seo_string = self::getReplacedCodeBlockReferenceString ($object_type, $id_lang, $id_shop, $translated_blockReference, $subreferenceList);
                 

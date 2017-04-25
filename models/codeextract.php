@@ -174,37 +174,58 @@ class CodeExtract extends ObjectModel
 			$extratCollection -> where ('id_shop', 'in', $shops);
 		}
 
-		
-		$extractXML = new SimpleXMLElement("<extractlist></extractlist>");
+		$xml = new DOMDocument( "1.0", "utf-8" );
+		$root_element = $xml -> createElement( "extractlist" );
+
+		$xml -> appendChild( $root_element );
+
 		if (count($extratCollection) > 0) {
-			foreach ($extratCollection as $colection) {
-				$extractNode = $extractXML -> addChild('extract');
 
+			foreach ($extratCollection as $extract_object) {
 
+				$id_shop = $extract_object -> id_shop;
+				$shop = new Shop($id_shop);
+				$shop_name = $shop -> name;
 
+				$extract_node = $xml -> createElement( "extract" );
+				$extract_node -> setAttribute( "blockreference", $extract_object -> blockreference );
+				$extract_node -> setAttribute( "subreference", $extract_object -> subreference );
+				$extract_node -> setAttribute( "shop", $shop_name );
 
+				$root_element -> appendChild( $extract_node );
 
-
-
-
-
-
-
-
+				$text = $extract_object -> text;			
 				
-				foreach ($store_data as $iso_lang => $product_data) {
-					// $feedXML->addAttribute('newsPagePrefix', 'value goes here');
-					$languageNode = $storeNode -> addChild($iso_lang);
-					foreach ($product_data as $product) {
-						$languageNode -> addChild('product_name', $product['name']);
-						$languageNode -> addChild('product_description', $product['description']);
-						$languageNode -> addChild('product_price_tax_exc', $product['price_tax_exc']);
-					}
-					// $newsIntro->addAttribute('type', 'latest');
+				foreach ($text as $id_lang => $translated_text) {
+					
+					$language = new Language($id_lang);
+					$iso_code = $language -> iso_code;
+
+					$textNode = $xml -> createElement('text');
+					$CDATA = $xml -> createCDATASection($translated_text);
+					$textNode -> appendChild( $CDATA );
+					$extract_node -> appendChild( $textNode );
+
 				}
 			}
 		}
-		return $feedXML->asXML();
+
+		$result_string = $xml -> saveXml();
+
+		$filename = "EXTACTS_". date('Y-m-d');
+
+		if (empty($blockReferences) && empty($subreferences) && empty($shops) && empty($langs)) {
+
+			$filename .= "_FULL";
+
+		}
+
+		$filename .= "_BACKUP.XML";
+
+		header('Content-type: text/xml');
+		header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+		die ($result_string);
 	}
 
 }
