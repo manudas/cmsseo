@@ -181,6 +181,10 @@ class CodeExtract extends ObjectModel
 
 		if (count($extratCollection) > 0) {
 
+			if (!emtpy($langs) && !is_array($langs)) {
+				$langs = array($langs);
+			}
+
 			foreach ($extratCollection as $extract_object) {
 
 				$id_shop = $extract_object -> id_shop;
@@ -197,11 +201,18 @@ class CodeExtract extends ObjectModel
 				$text = $extract_object -> text;			
 				
 				foreach ($text as $id_lang => $translated_text) {
+
+					if (!emtpy($langs)) {
+						if (!in_array($id_lang, $langs)) {
+							continue;
+						}
+					}
 					
 					$language = new Language($id_lang);
 					$iso_code = $language -> iso_code;
 
 					$textNode = $xml -> createElement('text');
+					$textNode -> setAttribute( "lang", $iso_code );
 					$CDATA = $xml -> createCDATASection($translated_text);
 					$textNode -> appendChild( $CDATA );
 					$extract_node -> appendChild( $textNode );

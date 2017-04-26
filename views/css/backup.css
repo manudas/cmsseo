@@ -13,3 +13,38 @@
 #tablebackup tr td:last-child {
    text-align: right!important;
 }
+
+#tablerestore {
+    width: 80%;
+    border-spacing: 15px;
+    border-collapse: separate;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+#tablerestore tr td:first-child {
+   text-align: left;
+}
+
+#tablerestore tr td:last-child {
+   text-align: right!important;
+}
+
+
+.fileUpload {
+    position: relative;
+    overflow: hidden;
+    margin-left: 10px;
+    margin-right: 0;
+}
+.fileUpload input.upload {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0;
+    filter: alpha(opacity=0);
+}

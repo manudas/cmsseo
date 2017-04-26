@@ -79,7 +79,12 @@ class AdminBackupController extends ModuleAdminController
 			else if (Tools::isSubmit('combinations')) {
 				CodeCombination::getXML_Backup_File();
 			}
-            
+            else if (Tools::isSubmit('metadata')) {
+				CombinationSeoMetaData::getXML_Backup_File();
+			}
+			else if (Tools::isSubmit('replacements')) {
+				CodeReplacement::getXML_Backup_File();
+			}
 		}
 	}
 
@@ -89,7 +94,7 @@ class AdminBackupController extends ModuleAdminController
 		parent::setMedia();
 		
 		$this -> addCSS(_MODULE_DIR_.$this->module->name.'/views/css/backup.css');
-		// $this -> addJS(_MODULE_DIR_.$this->module->name.'/views/js/backup.js');
+		$this -> addJS(_MODULE_DIR_.$this->module->name.'/views/js/backup.js');
 
 
 	}

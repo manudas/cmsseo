@@ -202,6 +202,111 @@ class CodeReplacement extends ObjectModel
         return $result;
     }
 
+    private static function sortReplacementsByBlockReference($replacementsCollection) {
+        $result = array();
+		if  (count ($replacementsCollection) > 0){
+			foreach ($replacementsCollection as $replacement) {
+				$result[$replacement -> blockreference][] = $replacement;
+			}
+		}
+		return $result;
+    }
+
+
+    public static function getXML_Backup_File($blockReferences, $shops, $langs) {
+		
+		$replacementsCollection = new PrestashopCollection('CodeReplacement');
+
+		if (!empty($blockReferences)) {
+			$replacementsCollection -> where ('blockreference', 'in', $blockReferences);
+		}
+
+		if (!empty($shops)) {
+			$replacementsCollection -> where ('id_shop', 'in', $shops);
+		}
+
+		$xml = new DOMDocument( "1.0", "utf-8" );
+		$root_element = $xml -> createElement( "replacementlist" );
+
+		$xml -> appendChild( $root_element );
+
+		if (count($replacementsCollection) > 0) {
+
+            if (!empty($langs) && !is_array($langs)) {
+				$langs = array($langs);
+			}
+
+            $languages = Language :: getLanguages(false);
+
+            $sortedObjectsByBlockReference = CodeReplacement::sortReplacementsByBlockReference($replacementsCollection);
+
+            foreach ($sortedObjectsByBlockReference as $blockreference => $replacementList) {
+                $reference_node = $xml -> createElement( "reference" );
+                $reference_node -> setAttribute( "blockreference", $blockreference );
+
+                $root_element -> appendChild( $reference_node );
+
+                foreach ( $replacementList as $replacement ) {
+                   
+                    $id_shop = $replacement -> id_shop;
+                    $shop = new Shop($id_shop);
+                    $shop_name = $shop -> name;
+                    
+                    $replacement_element = $xml -> createElement( "replacement" );
+                    $replacement_element -> setAttribute( "shop", $shop_name );
+
+                    $reference_node -> appendChild ($replacement_element);
+
+                    foreach ($languages as $language) {
+                        $iso_code = $language['iso_code'];
+                        $id_lang = $language['id_lang'];
+
+                        if (empty($replacement -> search[$id_lang]) && empty($replacement -> replace[$id_lang])) {
+                            continue;
+                        }
+                        if (!empty($langs) && !in_array($id_lang, $lang)) {
+                            continue;
+                        }
+
+                        $language_node = $xml -> createElement( $language ['iso_code'] );
+                        $replacement_element -> appendChild ($language_node);
+
+
+                        $search = $xml -> createElement( "search" );
+                        $CDATA = $xml -> createCDATASection($replacement -> search[$id_lang]);
+                        $search -> appendChild($CDATA);
+
+                        $replace = $xml -> createElement( "replace" );
+                        $CDATA = $xml -> createCDATASection($replacement -> replace[$id_lang]);
+                        $replace -> appendChild($CDATA);
+
+                        $language_node -> appendChild($search);
+                        $language_node -> appendChild($replace);
+                    }
+
+                }
+            }
+        }
+
+		$result_string = $xml -> saveXml();
+
+		$filename = "REPLACEMENTS_". date('Y-m-d');
+
+		if (empty($blockReferences) && empty($shops) && empty($langs)) {
+
+			$filename .= "_FULL";
+
+		}
+
+		$filename .= "_BACKUP.XML";
+
+		header('Content-type: text/xml');
+		header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+		die ($result_string);
+	}
+
+
 }
 
 ?>

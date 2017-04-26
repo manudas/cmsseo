@@ -129,6 +129,124 @@ class CombinationSeoMetaData extends ObjectModel
 		return $result;
 	}
 
+	public static function getXML_Backup_File($idList, $typeList, $shops, $langs) {
+		
+		$metaCollection = new PrestashopCollection('CombinationSeoMetaData');
+
+		if (!empty($idList)) {
+			$metaCollection -> where ('id_object', 'in', $idList);
+		}
+		if (!empty($typeList)) {
+			$metaCollection -> where ('object_type', 'in', $typeList);
+		}
+		if (!empty($shops)) {
+			$metaCollection -> where ('id_shop', 'in', $shops);
+		}
+
+		$xml = new DOMDocument( "1.0", "utf-8" );
+		$root_element = $xml -> createElement( "metadatalist" );
+
+		$xml -> appendChild( $root_element );
+
+		if (count($metaCollection) > 0) {
+
+			if (!empty($langs) && !is_array($langs)) {
+				$langs = array($langs);
+			}
+
+			$languages = Language :: getLanguages (false);
+
+			foreach ($metaCollection as $meta_object) {
+
+				$id_shop = $meta_object -> id_shop;
+				$shop = new Shop($id_shop);
+				$shop_name = $shop -> name;
+
+				$meta_node = $xml -> createElement( "metadata" );
+				$meta_node -> setAttribute( "id_object", $meta_object -> id_object );
+				$meta_node -> setAttribute( "type", $meta_object -> object_type );
+				$meta_node -> setAttribute( "shop", $shop_name );
+
+				$root_element -> appendChild( $meta_node );
+
+
+				$titles = $meta_object -> meta_title;
+				$descriptions = $meta_object -> meta_description;
+				$keywords = $meta_object -> meta_keywords;
+				$links_rewrite = $meta_object -> link_rewrite;
+				
+				
+				foreach ($languages as $language) {
+					
+					$id_lang = $language['id_lang'];
+					if (!empty($langs)) {
+						if (!in_array($id_lang, $langs)) {
+							continue;
+						}
+					}
+
+					if (empty ($titles[$id_lang]) && empty ($descriptions[$id_lang]) && empty ($keywords[$id_lang]) && empty ($links_rewrite[$id_lang])) {
+						continue;
+					}
+
+					$iso_code = $language['iso_code'];
+
+					$language_node = $xml -> createElement($iso_code);
+					$meta_node -> appendChild( $language_node );
+
+					if (!empty($titles[$id_lang])){
+						$metatitle_node = $xml -> createElement('metatitle');
+						$CDATA = $xml -> createCDATASection($titles[$id_lang]);
+						$metatitle_node -> appendChild( $CDATA );
+						$language_node -> appendChild( $metatitle_node );
+					}
+
+
+					if (!empty($descriptions[$id_lang])){
+						$description_node = $xml -> createElement('metadescription');
+						$CDATA = $xml -> createCDATASection($descriptions[$id_lang]);
+						$description_node -> appendChild( $CDATA );
+						$language_node -> appendChild( $description_node );
+					}
+
+
+					if (!empty($keywords[$id_lang])){
+						$keywords_node = $xml -> createElement('metakeywords');
+						$CDATA = $xml -> createCDATASection($keywords[$id_lang]);
+						$keywords_node -> appendChild( $CDATA );
+						$language_node -> appendChild( $keywords_node );
+					}
+
+
+					if (!empty($links_rewrite[$id_lang])){
+						$links_rewrite_node = $xml -> createElement('link-rewrite');
+						$CDATA = $xml -> createCDATASection($links_rewrite[$id_lang]);
+						$links_rewrite_node -> appendChild( $CDATA );
+						$language_node -> appendChild( $links_rewrite_node );
+					}
+
+				}
+			}
+		}
+
+		$result_string = $xml -> saveXml();
+
+		$filename = "METADATA_". date('Y-m-d');
+
+		if (empty($idList) && empty($typeList) && empty($shops) && empty($langs)) {
+
+			$filename .= "_FULL";
+
+		}
+
+		$filename .= "_BACKUP.XML";
+
+		header('Content-type: text/xml');
+		header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+		die ($result_string);
+	}
+
 }
 
 ?>
