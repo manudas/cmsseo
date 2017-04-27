@@ -23,7 +23,7 @@
 */
 
 
-class AdminBackupController extends ModuleAdminController
+class AdminCombinationSeoBackupController extends ModuleAdminController
 {
 	public function __construct()
 	{
@@ -37,7 +37,7 @@ class AdminBackupController extends ModuleAdminController
 		// $this -> className = 'CombinationSeoBackup'; 
 		$this -> lang = true;
 
-		$this -> name = 'Backup';
+		$this -> name = 'CombinationSeoBackup';
 
 		$this->multishop_context = Shop::CONTEXT_SHOP;
 
@@ -85,6 +85,25 @@ class AdminBackupController extends ModuleAdminController
 			else if (Tools::isSubmit('replacements')) {
 				CodeReplacement::getXML_Backup_File();
 			}
+		}
+		else if (Tools::isSubmit('submitRestore')){
+
+			$temp_file = $_FILES['combination_file']['tmp_name'];
+
+			if (!empty($temp_file)) {
+
+				if (Tools::isSubmit('extracts')) {
+					CodeExtract::saveXML_Restore_File($temp_file);
+				}
+				else if (Tools::isSubmit('combinations')) {
+					CodeCombination::saveXML_Restore_File($temp_file);
+				}
+				else if (Tools::isSubmit('metadata')) {
+					CombinationSeoMetaData::saveXML_Restore_File($temp_file);
+				}
+				
+			}
+
 		}
 	}
 

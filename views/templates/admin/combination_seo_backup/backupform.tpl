@@ -41,7 +41,7 @@
   </fieldset>
 </form>
 
-<form method='post' id='combinationSeoRestore' >
+<form method='post' id='combinationSeoRestore' enctype="multipart/form-data" >
     <input type='hidden' name='submitRestore' />
     <br />
     <legend>{l s='Restore or upload your data' d='Modules.combinationseo'}</legend>

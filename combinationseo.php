@@ -33,13 +33,13 @@ class combinationseo extends Module
         require_once (_PS_MODULE_DIR_.$this->name.'/models/combinationseometadata.php');
 
         $this->author = 'Manuel José Pulgar Anguita';
-        $this->version = '0.3';
+        $this->version = '0.4';
 
         $this->bootstrap = true;
         parent::__construct();
 
         $this->displayName = $this->trans('Combination SEO Module', array(), 'Modules.combinationseo.Admin');
-        $this->description = $this->trans('Generate your CMS pages in an automated and easy way, so you can improve your SEO faster.', array(), 'Modules.combinationseo.Admin');
+        $this->description = $this->trans('Generate your pages in an automated and easy way, so you can improve your SEO faster.', array(), 'Modules.combinationseo.Admin');
 
         $this->ps_versions_compliancy = array('min' => '1.7.0.0', 'max' => _PS_VERSION_);
 
@@ -81,7 +81,7 @@ class combinationseo extends Module
         $tab2 = $this -> installTab('AdminCodeExtract', $this->trans('Extractos de código', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
         $tab3 = $this -> installTab('AdminCodeReplacement', $this->trans('Sustituciones en código', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
         $tab4 = $this -> installTab('AdminMetaData', $this->trans('Meta Data for objects', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
-        $tab5 = $this -> installTab('AdminBackup', $this->trans('Import or export data for SEO', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
+        $tab5 = $this -> installTab('AdminCombinationSeoBackup', $this->trans('Import or export data for SEO', array(), 'Modules.combinationseo.Admin'), false, $desplegableTab_id);
         
         return $sectionTab && $desplegableTab && $tab && $tab2 && $tab3 && $tab4 && $tab5;
     

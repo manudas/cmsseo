@@ -66,7 +66,9 @@ class CodeCombination extends ObjectModel
 			`type` enum("cms", "product", "category") NOT NULL,
 			`order` int(3) NOT NULL,
 			`id_shop` int(10) NOT NULL,
-			PRIMARY KEY (`id`)
+			PRIMARY KEY (`id`), 
+			UNIQUE (`blockreference`, `subreference`, `id_shop`), 
+			UNIQUE (`id_object`, `type`, `id_shop`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
 
 		$sq2 = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.self::$definition['table'].'_shop`(
@@ -310,6 +312,82 @@ class CodeCombination extends ObjectModel
 		die ($result_string);
 	}
 
+	public static function combinationExists($blockreference, $subreference, $id_object, $type, $shop, $order) {
+		// deberíamos añadir caché aqui (y en muchos otros sitios, no parece optima tanta consulta a DB)
+		
+		$combination_collection = new PrestashopCollection('CodeCombination');
+
+		if (!empty($blockreference)) {
+			$combination_collection -> where ('blockreference' , '=', $blockreference);
+		}
+		if (!empty($subreference)) {
+			$combination_collection -> where ('subreference' , '=', $subreference);
+		}
+		if (!empty($id_object)) {
+			$combination_collection -> where ('id_object' , '=', $id_object);
+		}
+		if (!empty($blockreference)) {
+			$combination_collection -> where ('type' , '=', $type);
+		}
+		if (!empty($blockreference)) {
+			$combination_collection -> where ('id_shop' , '=', $shop);
+		}
+		if (!empty($order)) {
+			$combination_collection -> where ('order' , '=', $order);
+		}
+
+		if (count($combination_collection) > 0) {
+			return true;
+		}
+		else {
+			return false;
+		}
+
+
+	}
+	
+	public static function saveXML_Restore_File($filename) {
+
+		$xml = new DOMDocument();
+		$xml -> load($filename);
+		
+		$combinations_nodelist = $xml -> getElementsByTagName('combination');
+
+		if (count($combinations_nodelist) > 0 ) {
+
+			foreach ($combinations_nodelist as $combination_node) {
+				$blockreference = 		$combination_node -> getAttribute ( 'blockreference' );
+
+				$subreference_nodelist = $combination_node -> getElementsByTagName( 'subreference' );
+
+				if (count($combinations_nodelist) > 0 ) {
+					foreach ($subreference_nodelist as $subreference_node) {
+
+						$subreference = 		$subreference_node -> getElementsByTagName( 'name' );
+						$id_object = 			$subreference_node -> getElementsByTagName( 'id_object' );
+						$type = 				$subreference_node -> getElementsByTagName( 'type' );
+						$shop_name = 			$subreference_node -> getElementsByTagName( 'shop' );
+
+						$shop_id = 				Shop :: getIdByName($shop_name);
+
+						if (!combinationExists($blockreference, $subreference, $id_object, $type, $shop_name, $order)){
+
+							$combination = new CodeCombination();
+
+							$combination -> blockreference = $blockreference;
+							$combination -> subreference = $subreference;
+							$combination -> id_object = $id_object;
+							$combination -> type = $type;
+							$combination -> id_shop = $shop_id;
+
+							$combination -> save();
+
+						}
+					}
+				}
+			}		
+		}
+	}
 }
 
 ?>

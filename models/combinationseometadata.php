@@ -66,7 +66,7 @@ class CombinationSeoMetaData extends ObjectModel
 			`id_object` int(10) NOT NULL,
 			`object_type` enum("cms", "product", "category") NOT NULL,
 			`id_shop` int(10) unsigned NOT NULL,
-			PRIMARY KEY (`id`)
+			PRIMARY KEY (`id`), UNIQUE (`id_object`, `object_type`, `id_shop`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
 
 
@@ -96,14 +96,14 @@ class CombinationSeoMetaData extends ObjectModel
 		return $result;
 	}
 
-	public static function getMetaDataCollection ($id_object, $object_type, $id_lang, $id_shop)
+	public static function getMetaDataObject ($id_object, $object_type, $id_lang, $id_shop)
 
     {		
 		if (empty($id_object)) {
-            throw new PrestaShopException(get_called_class() .":: getMetaDataCollection:: Can't get set width an empty id_object");
+            throw new PrestaShopException(get_called_class() .":: getMetaDataObject:: Can't get set width an empty id_object");
         }
         if (empty($object_type)) {
-            throw new PrestaShopException(get_called_class() .":: getMetaDataCollection:: Can't get set width an empty object_type");
+            throw new PrestaShopException(get_called_class() .":: getMetaDataObject:: Can't get set width an empty object_type");
         }
 
 		if (empty($id_shop)) {
@@ -245,6 +245,52 @@ class CombinationSeoMetaData extends ObjectModel
 		header('Content-Disposition: attachment; filename="' . $filename . '"');
 
 		die ($result_string);
+	}
+
+
+	public static function saveXML_Restore_File($filename) {
+		$xml = new DOMDocument();
+		$xml -> load($filename);
+		
+		$metadata_nodelist = $xml -> getElementsByTagName('metadata');
+
+		if (count($metadata_nodelist) > 0 ) {
+
+			foreach ($metadata_nodelist as $metadata_node) {
+
+
+				// unique: id_object, type and id_shop
+				$id_object = 		$metadata_node -> getAttribute ( 'id_object' );
+				$object_type = 		$metadata_node -> getAttribute ( 'type' );
+				$shop_name = 		$metadata_node -> getAttribute ( 'shop' );
+
+				$shop_id = 				Shop :: getIdByName($shop_name);
+
+				$meta_obj = self::getMetaDataObject($id_object, $object_type, null, $shop_id);
+				if (empty($meta_obj)) {
+
+					$meta_obj = new CombinationSeoMetaData();
+
+					$meta_obj -> id_object = $id_object;
+					$meta_obj -> object_type = $object_type;
+					$meta_obj -> id_shop = $shop_id;
+
+				}
+
+				$language_nodes = $metadata_node -> getElementsByTagName('*'); // filters away the domtexts
+
+				if (count($language_nodes) > 0) {
+					foreach ($language_nodes as $iso_code) {
+						$breakpoint = "";
+						por aqui seguimos
+					}
+				}
+
+				$meta_obj -> save ();
+
+			}
+			
+		}
 	}
 
 }

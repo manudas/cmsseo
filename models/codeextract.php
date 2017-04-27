@@ -181,7 +181,7 @@ class CodeExtract extends ObjectModel
 
 		if (count($extratCollection) > 0) {
 
-			if (!emtpy($langs) && !is_array($langs)) {
+			if (!empty($langs) && !is_array($langs)) {
 				$langs = array($langs);
 			}
 
@@ -202,7 +202,7 @@ class CodeExtract extends ObjectModel
 				
 				foreach ($text as $id_lang => $translated_text) {
 
-					if (!emtpy($langs)) {
+					if (!empty($langs)) {
 						if (!in_array($id_lang, $langs)) {
 							continue;
 						}
@@ -223,7 +223,7 @@ class CodeExtract extends ObjectModel
 
 		$result_string = $xml -> saveXml();
 
-		$filename = "EXTACTS_". date('Y-m-d');
+		$filename = "EXTRACTS_". date('Y-m-d');
 
 		if (empty($blockReferences) && empty($subreferences) && empty($shops) && empty($langs)) {
 
@@ -239,6 +239,62 @@ class CodeExtract extends ObjectModel
 		die ($result_string);
 	}
 
+
+	public static function saveXML_Restore_File($filename) {
+		$xml = new DOMDocument();
+		$xml -> load($filename);
+		
+		$extracts_nodelist = $xml -> getElementsByTagName('extract');
+
+		if (count($extracts_nodelist) > 0 ) {
+
+			foreach ($extracts_nodelist as $extract_node) {
+				$blockreference = 		$extract_node -> getAttribute ( 'blockreference' );
+				$subreference = 		$extract_node -> getAttribute ( 'subreference' );
+				$shop_name = 			$extract_node -> getAttribute ( 'shop' );
+
+				$shop_id = 				Shop :: getIdByName($shop_name);
+
+			    $extract_collection = 	self::getCodeExtractCollection ($blockreference, null, $shop_id, array($subreference));
+
+				if (!empty($extract_collection[$blockreference][$subreference])) {
+					$exists = true;
+					$extract_objectModel = $extract_collection[$blockreference][$subreference]['object'];
+				}
+				else {
+					$exists = true;
+					$extract_objectModel = new CodeExtract();
+					$extract_objectModel -> blockreference = $blockreference;
+					$extract_objectModel -> subreference = $subreference;
+					$extract_objectModel -> id_shop = $shop_id;
+				}
+
+
+				$text_nodelist = $extract_node -> getElementsByTagName('text');
+
+				if (count($text_nodelist) > 0 ) {
+
+					foreach ($text_nodelist as $text_element) {
+						$language_iso_code = $text_element -> getAttribute ( 'lang' );
+
+						$lang_id = Language :: getIdByIso($language_iso_code);
+
+						if (empty($lang_id)) {
+							error_log("Language $language_iso_code not found");
+							continue;
+						}
+						else {
+							$extract_objectModel -> text [$lang_id] = $text_element -> firstChild -> textContent;
+						}
+					}
+
+				}
+
+				$extract_objectModel -> save ();
+			}
+			
+		}
+	}
 }
 
 ?>

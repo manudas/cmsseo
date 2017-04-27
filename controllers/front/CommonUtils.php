@@ -124,7 +124,7 @@ class CombinationSeoCommonUtilsModuleFrontController extends ModuleFrontControll
 
         $combinationseo_module = Module :: getInstanceByName ('combinationseo');
         
-        $metadata = CombinationSeoMetaData::getMetaDataCollection ($id_object, $object_type, $id_lang, $id_shop);     
+        $metadata = CombinationSeoMetaData::getMetaDataObject ($id_object, $object_type, $id_lang, $id_shop);     
 
         if (!empty($metadata)){
 
