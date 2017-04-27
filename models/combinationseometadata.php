@@ -277,12 +277,46 @@ class CombinationSeoMetaData extends ObjectModel
 
 				}
 
-				$language_nodes = $metadata_node -> getElementsByTagName('*'); // filters away the domtexts
+				$childnodes = $metadata_node -> childNodes;
 
-				if (count($language_nodes) > 0) {
-					foreach ($language_nodes as $iso_code) {
-						$breakpoint = "";
-						por aqui seguimos
+				if (count($childnodes) > 0) {
+					foreach ($childnodes as $node) {
+
+						if ($node -> nodeType == XML_TEXT_NODE){
+							// no nos interesan los text nodes (intros, espacios, etc...)
+							continue;
+						}
+						else {
+							// es un language node
+							$lang_iso_code = $node -> tagName;
+							$lang_id = Language :: getIdByIso($lang_iso_code);
+
+							$metaDataChildNodes = $node -> childNodes;
+							if (count($metaDataChildNodes) > 0) {
+								foreach ($metaDataChildNodes as $translated_metadata) {
+									if ($translated_metadata -> nodeType == XML_TEXT_NODE){
+										// no nos interesan los text nodes (intros, espacios, etc...)
+										continue;
+									}
+
+									$tag_name = $translated_metadata -> tagName;
+
+									$value = $translated_metadata -> firstChild -> textContent;
+									if ($tag_name == 'metatitle') {
+										$meta_obj -> meta_title [$lang_id] = $value;
+									}
+									else if ($tag_name == 'metadescription') {
+										$meta_obj -> meta_description [$lang_id] = $value;
+									}
+									else if ($tag_name == 'metakeywords') {
+										$meta_obj -> meta_keywords [$lang_id] = $value;
+									}
+									else if ($tag_name == 'link-rewrite') {
+										$meta_obj -> link_rewrite [$lang_id] = $value;
+									}
+								}
+							}
+						}
 					}
 				}
 

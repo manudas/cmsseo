@@ -307,6 +307,110 @@ class CodeReplacement extends ObjectModel
 	}
 
 
+    public static function saveXML_Restore_File($filename) {
+		$xml = new DOMDocument();
+		$xml -> load($filename);
+		
+		$reference_nodelist = $xml -> getElementsByTagName('reference');
+
+		if (count($reference_nodelist) > 0 ) {
+
+			foreach ($reference_nodelist as $reference_node) {
+
+
+				$blockreference = 		$reference_node -> getAttribute ( 'blockreference' );
+
+
+
+
+
+
+
+akistoi
+
+lo lógico es que search no sea multilenguage y que solo lo sea replace
+pues search debería ser siempre una cadena de busqueda a reemplazar,
+independiente del idioma en el que te encuentres.
+de esta manera podríamos hacer unique la tupla (breference, search) y por
+lo tanto poder buscar si dicha reemplazo ya existe para no volver a insertarlo
+
+¿existe opción b para esto ?
+
+
+
+
+
+
+
+
+
+
+				$object_type = 		$reference_node -> getAttribute ( 'type' );
+				$shop_name = 		$reference_node -> getAttribute ( 'shop' );
+
+				$shop_id = 				Shop :: getIdByName($shop_name);
+
+				$meta_obj = self::getMetaDataObject($id_object, $object_type, null, $shop_id);
+				if (empty($meta_obj)) {
+
+					$meta_obj = new CombinationSeoMetaData();
+
+					$meta_obj -> id_object = $id_object;
+					$meta_obj -> object_type = $object_type;
+					$meta_obj -> id_shop = $shop_id;
+
+				}
+
+				$childnodes = $reference_node -> childNodes;
+
+				if (count($childnodes) > 0) {
+					foreach ($childnodes as $node) {
+
+						if ($node -> nodeType == XML_TEXT_NODE){
+							// no nos interesan los text nodes (intros, espacios, etc...)
+							continue;
+						}
+						else {
+							// es un language node
+							$lang_iso_code = $node -> tagName;
+							$lang_id = Language :: getIdByIso($lang_iso_code);
+
+							$metaDataChildNodes = $node -> childNodes;
+							if (count($metaDataChildNodes) > 0) {
+								foreach ($metaDataChildNodes as $translated_metadata) {
+									if ($translated_metadata -> nodeType == XML_TEXT_NODE){
+										// no nos interesan los text nodes (intros, espacios, etc...)
+										continue;
+									}
+
+									$tag_name = $translated_metadata -> tagName;
+
+									$value = $translated_metadata -> firstChild -> textContent;
+									if ($tag_name == 'metatitle') {
+										$meta_obj -> meta_title [$lang_id] = $value;
+									}
+									else if ($tag_name == 'metadescription') {
+										$meta_obj -> meta_description [$lang_id] = $value;
+									}
+									else if ($tag_name == 'metakeywords') {
+										$meta_obj -> meta_keywords [$lang_id] = $value;
+									}
+									else if ($tag_name == 'link-rewrite') {
+										$meta_obj -> link_rewrite [$lang_id] = $value;
+									}
+								}
+							}
+						}
+					}
+				}
+
+				$meta_obj -> save ();
+
+			}
+			
+		}
+	}
+
 }
 
 ?>
