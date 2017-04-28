@@ -18,7 +18,7 @@ class CodeReplacement extends ObjectModel
 		'fields' => array(
 			'id' =>      			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => false),
 			'id_shop' =>      		array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt', 'required' => true, 'shop' => true),
-			'search' =>   		   	array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true, 'lang' => TRUE),
+			'search' =>   		   	array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true),
 			'replace' =>    	  	array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true, 'lang' => TRUE),
 			'blockreference' =>     array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true),
 		),
@@ -53,7 +53,8 @@ class CodeReplacement extends ObjectModel
 			`id` int(10) unsigned NOT NULL auto_increment,
 			`blockreference` varchar(32) NOT NULL,
 			`id_shop` int(10) NOT NULL,
-			PRIMARY KEY (`id`)
+			`search` varchar(128) NOT NULL,
+			PRIMARY KEY (`id`), UNIQUE (`blockreference`, `search`, `id_shop`),
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
 
 		$sq2 = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.self::$definition['table'].'_shop`(
@@ -66,7 +67,7 @@ class CodeReplacement extends ObjectModel
 			`id` int(10) unsigned NOT NULL auto_increment,
 			`id_lang` int(10) NOT NULL,
 			`id_shop` int(10) NOT NULL,
-			`search` varchar(128) NOT NULL,
+			
 			`replace` varchar(128) NOT NULL,
 			PRIMARY KEY (`id`, `id_lang`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
@@ -248,6 +249,12 @@ class CodeReplacement extends ObjectModel
 
                 foreach ( $replacementList as $replacement ) {
                    
+
+					if (empty($replacement -> search)) {
+						// no ponemos 
+						continue;
+					}
+
                     $id_shop = $replacement -> id_shop;
                     $shop = new Shop($id_shop);
                     $shop_name = $shop -> name;
@@ -257,11 +264,17 @@ class CodeReplacement extends ObjectModel
 
                     $reference_node -> appendChild ($replacement_element);
 
+                    $search = $xml -> createElement( "search" );
+                    $CDATA = $xml -> createCDATASection($replacement -> search);
+                    $search -> appendChild($CDATA);
+
+					$replacement_element -> appendChild($search);
+
                     foreach ($languages as $language) {
                         $iso_code = $language['iso_code'];
                         $id_lang = $language['id_lang'];
 
-                        if (empty($replacement -> search[$id_lang]) && empty($replacement -> replace[$id_lang])) {
+                        if ( empty($replacement -> replace[$id_lang]) ) {
                             continue;
                         }
                         if (!empty($langs) && !in_array($id_lang, $lang)) {
@@ -271,16 +284,10 @@ class CodeReplacement extends ObjectModel
                         $language_node = $xml -> createElement( $language ['iso_code'] );
                         $replacement_element -> appendChild ($language_node);
 
-
-                        $search = $xml -> createElement( "search" );
-                        $CDATA = $xml -> createCDATASection($replacement -> search[$id_lang]);
-                        $search -> appendChild($CDATA);
-
                         $replace = $xml -> createElement( "replace" );
                         $CDATA = $xml -> createCDATASection($replacement -> replace[$id_lang]);
                         $replace -> appendChild($CDATA);
 
-                        $language_node -> appendChild($search);
                         $language_node -> appendChild($replace);
                     }
 
@@ -306,6 +313,33 @@ class CodeReplacement extends ObjectModel
 		die ($result_string);
 	}
 
+	public static function getReplacementObjectModel($blockReference, $search_string, $id_shop) {
+		if (empty($blockReference)) {
+            throw new PrestaShopException(get_called_class() .":: getReplacementObjectModel:: Can't get Replacement object width an empty blockReference");
+        }
+		if (empty($search_string)) {
+            throw new PrestaShopException(get_called_class() .":: getReplacementObjectModel:: Can't get Replacement object width an empty search_string");
+        }
+		if (empty($id_shop)) {
+            throw new PrestaShopException(get_called_class() .":: getReplacementObjectModel:: Can't get Replacement object width an empty id_shop");
+        }
+
+		$replacement_collection = new PrestashopCollection('CodeReplacement') ;
+
+		$replacement_collection -> where ('blockreference', 'in', $blockReference);
+		$replacement_collection -> where ('search', 'in', $search_string);
+		$replacement_collection -> where ('id_shop', 'in', $id_shop);
+
+		if (count ($replacement_collection) > 0){
+			// solo podemos tener uno pues la tripleta blockreference, search e id_shop es clave unica (UNIQUE)
+			return $replacement_collection -> getFrist();
+		}
+		else {
+			return null;
+		}
+
+
+	}
 
     public static function saveXML_Restore_File($filename) {
 		$xml = new DOMDocument();
@@ -318,93 +352,58 @@ class CodeReplacement extends ObjectModel
 			foreach ($reference_nodelist as $reference_node) {
 
 
-				$blockreference = 		$reference_node -> getAttribute ( 'blockreference' );
+				$blockreference = 			$reference_node -> getAttribute ( 'blockreference' );
 
+				$replacementNodeList = 		$reference_node -> getElementsByTagName('replacement');
 
+				if (count ($replacementNodeList) > 0) {
+					foreach ($replacementNodeList as $replacement) {
+						$shop_name = $replacement -> getAttribute ( 'shop' );
 
+						$shop_id = 				Shop :: getIdByName($shop_name);
 
+						$search_node = $replacement -> getElementsByTagName('search');
 
+						$search_text = $search_node -> firstChild -> textContent;
 
+						$replacement_obj = self::getReplacementObjectModel($blockreference, $search_text, $shop_id);
 
-akistoi
+						if ($replacement_obj == null) {
 
-lo lógico es que search no sea multilenguage y que solo lo sea replace
-pues search debería ser siempre una cadena de busqueda a reemplazar,
-independiente del idioma en el que te encuentres.
-de esta manera podríamos hacer unique la tupla (breference, search) y por
-lo tanto poder buscar si dicha reemplazo ya existe para no volver a insertarlo
+							$replacement_obj = new CodeReplacement();
 
-¿existe opción b para esto ?
+							$replacement_ob -> id_shop = $shop_id;
+							$replacement_ob -> search = $search_text;
+							$replacement_ob -> blockreference = $blockreference;
 
-
-
-
-
-
-
-
-
-
-				$object_type = 		$reference_node -> getAttribute ( 'type' );
-				$shop_name = 		$reference_node -> getAttribute ( 'shop' );
-
-				$shop_id = 				Shop :: getIdByName($shop_name);
-
-				$meta_obj = self::getMetaDataObject($id_object, $object_type, null, $shop_id);
-				if (empty($meta_obj)) {
-
-					$meta_obj = new CombinationSeoMetaData();
-
-					$meta_obj -> id_object = $id_object;
-					$meta_obj -> object_type = $object_type;
-					$meta_obj -> id_shop = $shop_id;
-
-				}
-
-				$childnodes = $reference_node -> childNodes;
-
-				if (count($childnodes) > 0) {
-					foreach ($childnodes as $node) {
-
-						if ($node -> nodeType == XML_TEXT_NODE){
-							// no nos interesan los text nodes (intros, espacios, etc...)
-							continue;
 						}
-						else {
-							// es un language node
-							$lang_iso_code = $node -> tagName;
-							$lang_id = Language :: getIdByIso($lang_iso_code);
 
-							$metaDataChildNodes = $node -> childNodes;
-							if (count($metaDataChildNodes) > 0) {
-								foreach ($metaDataChildNodes as $translated_metadata) {
-									if ($translated_metadata -> nodeType == XML_TEXT_NODE){
-										// no nos interesan los text nodes (intros, espacios, etc...)
-										continue;
-									}
+						$childnodes = $replacement -> childNodes;
 
-									$tag_name = $translated_metadata -> tagName;
+						if (count($childnodes) > 0) {
+							foreach ($childnodes as $node) {
 
-									$value = $translated_metadata -> firstChild -> textContent;
-									if ($tag_name == 'metatitle') {
-										$meta_obj -> meta_title [$lang_id] = $value;
-									}
-									else if ($tag_name == 'metadescription') {
-										$meta_obj -> meta_description [$lang_id] = $value;
-									}
-									else if ($tag_name == 'metakeywords') {
-										$meta_obj -> meta_keywords [$lang_id] = $value;
-									}
-									else if ($tag_name == 'link-rewrite') {
-										$meta_obj -> link_rewrite [$lang_id] = $value;
-									}
+								if (($node -> nodeType == XML_TEXT_NODE) || ($node -> tagName == 'search')){
+									// no nos interesan los text nodes (intros, espacios, etc...) y el nodo search ya lo hemos procesado antes
+									continue;
+								}
+								else {
+									
+									$lang_iso_code = $node -> tagName;
+
+									// es un language node
+									$lang_id = Language :: getIdByIso($lang_iso_code);
+									$replace_node = $node -> getElementsByTagName('replace');
+									$replace_text = $replace_node -> firstChild -> textContent;
+
+									$replacement_ob -> replace[$lang_id] = $replace_text;
+
 								}
 							}
 						}
+						$replacement_ob -> save();
 					}
 				}
-
-				$meta_obj -> save ();
 
 			}
 			
